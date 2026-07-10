@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado FUNECE/UECE - SEDUC CE: LDB (Título IV)</title>
+    <style>
+        :root {
+            --primary-color: #004d40;
+            --secondary-color: #00796b;
+            --accent-color: #ffb300;
+            --correct-bg: #e8f5e9;
+            --correct-border: #2e7d32;
+            --correct-text: #1b5e20;
+            --incorrect-bg: #ffebee;
+            --incorrect-border: #c62828;
+            --incorrect-text: #b71c1c;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-light: #666666;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+
+        /* Header e Timer */
+        header {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-info h1 {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
+        
+        .header-info p {
+            font-size: 0.9rem;
+            color: #b2dfdb;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .dash-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 850px;
+            margin: 30px auto;
+            padding: 0 15px;
+        }
+
+        .question-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .question-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .question-statement {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .roman-items {
+            margin: 15px 0;
+            padding-left: 20px;
+            list-style-type: upper-roman;
+        }
+
+        .roman-items li {
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        /* Alternatives */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 18px;
+            background-color: #fafafa;
+            border: 1px solid #dcdcdc;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            font-size: 1rem;
+        }
+
+        .option:hover:not(.disabled) {
+            background-color: #f0f0f0;
+            border-color: #bdbdbd;
+        }
+
+        .option-letter {
+            font-weight: bold;
+            color: #ffffff;
+            background-color: var(--secondary-color);
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .option-text {
+            flex-grow: 1;
+            padding-top: 3px;
+        }
+
+        /* States */
+        .disabled {
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        .option.correta {
+            background-color: var(--correct-bg) !important;
+            border-color: var(--correct-border) !important;
+            color: var(--correct-text);
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--correct-border);
+        }
+
+        .option.incorreta {
+            background-color: var(--incorrect-bg) !important;
+            border-color: var(--incorrect-border) !important;
+            color: var(--incorrect-text);
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--incorrect-border);
+        }
+
+        /* Feedback */
+        .feedback {
+            display: none;
+            margin-top: 20px;
+            padding: 18px;
+            background-color: #fff9c4;
+            border-left: 5px solid var(--accent-color);
+            border-radius: 4px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .feedback h4 {
+            color: #b07d00;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .feedback p {
+            font-size: 0.95rem;
+            color: #444;
+            text-align: justify;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal / Resultado */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .score-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin: 20px 0;
+        }
+
+        .btn-restart {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .btn-restart:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-info">
+            <h1>Simulado SEDUC CE (Banca FUNECE/UECE)</h1>
+            <p>LDB - Organização da Educação Nacional (Arts. 8º ao 19º)</p>
+        </div>
+        <div class="dashboard">
+            <div class="dash-item" id="progress-display">Progresso: 0/10</div>
+            <div class="dash-item" id="timer-display">⏱ 00:00</div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- Questões serão injetadas via JavaScript -->
+    </main>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>Simulado Concluído!</h2>
+            <p>Aqui está o seu desempenho final:</p>
+            <div class="score-display" id="final-score">0/10</div>
+            <p>Tempo de Resolução: <strong id="final-time">00:00</strong></p>
+            <button class="btn-restart" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 1,
+                type: "contemplation",
+                statement: "Acerca das incumbências dos diferentes entes federativos estabelecidas nos artigos 10 e 11 da LDB, analise as proposições abaixo e julgue-as:<br><br><ul class='roman-items'><li>Os Estados devem assegurar o ensino fundamental e oferecer, com prioridade, o ensino médio a todos que o demandarem.</li><li>Os Municípios devem oferecer a educação infantil em creches e pré-escolas e, com prioridade, o ensino fundamental.</li><li>Os Municípios poderão optar por se integrar ao sistema estadual de ensino ou compor com ele um sistema único de educação básica.</li><li>A União possui a incumbência exclusiva de assumir o transporte escolar dos alunos das redes estaduais e municipais.</li></ul><br>É correto o que se afirma em:",
+                options: [
+                    { text: "I e II, apenas.", correct: false },
+                    { text: "II e IV, apenas.", correct: false },
+                    { text: "I, II e III, apenas.", correct: true },
+                    { text: "I, II, III e IV.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>C</strong>. Os itens I, II e III são corretos e refletem, respectivamente, o Art. 10, VI; o Art. 11, V; e o Art. 11, Parágrafo Único da LDB. O erro do item IV está em atribuir à União o transporte escolar de outras redes, quando a própria LDB determina que os Estados assumem o transporte da rede estadual (Art. 10, VII) e os Municípios o da rede municipal (Art. 11, VI)."
+            },
+            {
+                id: 2,
+                type: "objective",
+                statement: "A LDB (Lei nº 9.394/1996) outorga aos estabelecimentos de ensino, respeitadas as normas comuns e as do seu sistema de ensino, diversas incumbências. Dentre as alternativas a seguir, assinale aquela que constitui, nos termos do Art. 12, um dever precípuo das escolas:",
+                options: [
+                    { text: "Notificar ao Conselho Tutelar do Município a relação dos alunos que apresentem quantidade de faltas acima de 30% (trinta por cento) do percentual permitido em lei.", correct: true },
+                    { text: "Estabelecer estratégias de recuperação para os alunos de menor rendimento, sendo esta uma atribuição exclusiva da equipe diretiva.", correct: false },
+                    { text: "Baixar normas complementares sobre os cursos de graduação e pós-graduação ofertados na região de sua jurisdição.", correct: false },
+                    { text: "Garantir processo nacional de avaliação do rendimento escolar, objetivando a definição de prioridades.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>A</strong> (Art. 12, inciso VIII, 'a', com redação dada pela Lei nº 15.231/2025). A alternativa B está errada, pois estabelecer estratégias de recuperação é dever dos <em>docentes</em> (Art. 13, IV), enquanto aos estabelecimentos cabe <em>prover os meios</em> (Art. 12, V). A alternativa C é incumbência da União (Art. 9º, VII). A alternativa D também é da União (Art. 9º, VI)."
+            },
+            {
+                id: 3,
+                type: "objective",
+                statement: "A gestão democrática do ensino público na educação básica constitui princípio basilar da legislação educacional brasileira. Segundo as diretrizes do Art. 14 da LDB (com redação atualizada), é correto afirmar que:",
+                options: [
+                    { text: "A participação dos profissionais da educação no projeto pedagógico da escola é opcional, dependendo do regimento interno de cada unidade.", correct: false },
+                    { text: "O Conselho Escolar, classificado como órgão consultivo, será composto exclusivamente por membros eleitos da comunidade local.", correct: false },
+                    { text: "O Fórum dos Conselhos Escolares possui caráter deliberativo e visa fortalecer a efetivação do processo democrático nas unidades educacionais.", correct: true },
+                    { text: "O Diretor da Escola deve submeter seu nome a eleição entre os pares para compor o Conselho Escolar como membro provisório.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>C</strong> (Art. 14, § 2º). A letra A está incorreta pois a participação dos profissionais é um princípio normativo da gestão democrática (Art. 14, I). A letra B erra ao dizer que o Conselho Escolar é consultivo (ele é deliberativo, Art. 14, § 1º) e exclusivo da comunidade (inclui profissionais e estudantes). A letra D erra pois o Diretor da Escola é <em>membro nato</em> do Conselho Escolar, e não membro provisório sujeito a eleição para o conselho (Art. 14, § 1º)."
+            },
+            {
+                id: 4,
+                type: "contemplation",
+                statement: "Sobre a composição dos sistemas de ensino (Federal, Estadual e Municipal), conforme disciplinam os artigos 16, 17 e 18 da LDB, avalie a correção das afirmativas abaixo:<br><br><ul class='roman-items'><li>O sistema federal de ensino compreende as instituições de educação superior mantidas pela iniciativa privada.</li><li>As instituições de educação infantil, criadas e mantidas pela iniciativa privada, integram, via de regra, os sistemas municipais de ensino.</li><li>As instituições de educação superior mantidas pelo Poder Público municipal integram os sistemas estaduais de ensino.</li><li>As instituições de ensino fundamental e médio criadas e mantidas pela iniciativa privada integram o sistema federal de ensino.</li></ul><br>A sequência correta é:",
+                options: [
+                    { text: "I, II e III são corretas.", correct: true },
+                    { text: "I, III e IV são corretas.", correct: false },
+                    { text: "II e IV são corretas.", correct: false },
+                    { text: "I, II, III e IV são corretas.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>A</strong>. O item I está correto (Art. 16, II). O item II está correto (Art. 18, II). O item III aborda uma pegadinha clássica de concurso: faculdades municipais integram o sistema <em>Estadual</em> (Art. 17, II), logo está correto. O item IV é falso, pois escolas privadas de ensino fundamental e médio integram os sistemas <em>Estaduais</em> (Art. 17, III), e não o federal."
+            },
+            {
+                id: 5,
+                type: "objective",
+                statement: "Nos termos do Art. 13 da LDB, são previstas atribuições específicas inerentes ao trabalho dos docentes. Analise as opções abaixo e assinale a que NÃO representa uma incumbência legal dos docentes:",
+                options: [
+                    { text: "Participar da elaboração da proposta pedagógica do estabelecimento de ensino.", correct: false },
+                    { text: "Zelar pela aprendizagem dos alunos e estabelecer estratégias de recuperação para os alunos de menor rendimento.", correct: false },
+                    { text: "Ministrar os dias letivos e horas-aula estabelecidos, sem obrigatoriedade legal de participar dos períodos de planejamento.", correct: true },
+                    { text: "Colaborar com as atividades de articulação da escola com as famílias e a comunidade.", correct: false }
+                ],
+                feedback: "A alternativa correta (a que NÃO é dever) é a <strong>C</strong>. Segundo o Art. 13, inciso V, o docente deve ministrar os dias e horas-aula, <em>além de participar integralmente dos períodos dedicados ao planejamento, à avaliação e ao desenvolvimento profissional</em>. As alternativas A (inciso I), B (incisos III e IV) e D (inciso VI) são incumbências legais diretas dos docentes."
+            },
+            {
+                id: 6,
+                type: "contemplation",
+                statement: "A fim de garantir a transparência e o controle social na educação, a LDB, em seu Art. 14-A (incluído em 2024), determinou a disponibilização de informações ao público. Julgue os itens a respeito das informações que devem ser acessíveis eletronicamente:<br><br><ul class='roman-items'><li>O número de vagas disponíveis e preenchidas por instituição de ensino, além da lista de espera por ordem de colocação.</li><li>O currículo profissional e acadêmico dos ocupantes de cargo de direção, não se aplicando, contudo, aos membros dos conselhos de educação.</li><li>Estatísticas relativas a fluxo e a rendimento escolares.</li><li>A execução física e financeira de programas e projetos financiados com recursos públicos ou renúncia fiscal.</li></ul><br>Estão em conformidade com o texto da Lei:",
+                options: [
+                    { text: "I, III e IV, apenas.", correct: true },
+                    { text: "I, II e III, apenas.", correct: false },
+                    { text: "III e IV, apenas.", correct: false },
+                    { text: "I, II, III e IV.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>A</strong>. Os itens I, III e IV estão corretos, conforme Art. 14-A (incisos I, IV e V). O erro do item II reside no fato de que o currículo profissional e acadêmico deve ser disponibilizado para ocupantes de direção <em>e também para os membros dos conselhos de educação</em> (Art. 14-A, inciso VI), respeitada a Lei Geral de Proteção de Dados (LGPD)."
+            },
+            {
+                id: 7,
+                type: "objective",
+                statement: "O regime de colaboração é a espinha dorsal da organização da educação nacional (Art. 8º). Acerca da incumbência da União neste contexto, assinale a opção correta, conforme o Art. 9º da Lei de Diretrizes e Bases da Educação Nacional:",
+                options: [
+                    { text: "A União detém poder centralizador, devendo executar isoladamente as políticas de educação básica em todo o território nacional.", correct: false },
+                    { text: "Cabe à União a função normativa, redistributiva e supletiva em relação às demais instâncias educacionais.", correct: true },
+                    { text: "A assistência técnica e financeira da União aos entes federados não inclui atendimento prioritário à escolaridade obrigatória.", correct: false },
+                    { text: "A União tem liberdade restrita de avaliação, não podendo avaliar instituições de educação superior mantidas por Estados.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>B</strong> (Art. 8º, § 1º). A afirmativa A está errada porque a educação é organizada em <em>regime de colaboração</em> (Art. 8º). A afirmativa C está errada porque o atendimento prioritário à escolaridade obrigatória é expressamente citado (Art. 9º, III). A afirmativa D está incorreta pois a União tem acesso a todos os dados para avaliar a educação e assegura processo nacional de avaliação do ensino superior (Art. 9º, VIII)."
+            },
+            {
+                id: 8,
+                type: "objective",
+                statement: "Considerando as categorias administrativas das instituições de ensino nos diferentes níveis (Art. 19), assinale a alternativa juridicamente pertinente no arcabouço da LDB:",
+                options: [
+                    { text: "As instituições são divididas unicamente em públicas (criadas pelo Poder Público) e privadas (mantidas por pessoas físicas ou jurídicas).", correct: false },
+                    { text: "A legislação extinguiu o reconhecimento das instituições comunitárias, englobando-as obrigatoriamente na categoria privada com fins lucrativos.", correct: false },
+                    { text: "Instituições privadas e comunitárias podem qualificar-se como confessionais, desde que atendam a orientação confessional e ideologia específicas.", correct: true },
+                    { text: "As instituições privadas perdem o direito a qualquer certificação filantrópica, prerrogativa esta exclusiva das escolas públicas.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>C</strong> (Art. 19, § 1º). A alternativa A está incompleta/errada pois ignora a categoria das comunitárias (Art. 19, III). A alternativa B é falsa, a categoria comunitária é reconhecida em lei. A alternativa D é absurda do ponto de vista legal, uma vez que o § 2º do Art. 19 afirma expressamente que instituições privadas e comunitárias podem ser certificadas como filantrópicas."
+            },
+            {
+                id: 9,
+                type: "contemplation",
+                statement: "Com base nas inclusões mais recentes da LDB, que versam sobre segurança no ambiente escolar e competências complementares (Art. 12), julgue os enunciados:<br><br><ul class='roman-items'><li>Os estabelecimentos de ensino devem promover ambiente escolar seguro, adotando estratégias de prevenção e enfrentamento ao uso ou dependência de drogas.</li><li>É obrigação da escola promover medidas de combate a todos os tipos de violência, especialmente a intimidação sistemática (bullying).</li><li>Casos envolvendo tentativas de suicídio de alunos não precisam ser reportados aos órgãos externos se controlados pela escola.</li></ul><br>É(São) afirmativa(s) correta(s):",
+                options: [
+                    { text: "I, apenas.", correct: false },
+                    { text: "I e II, apenas.", correct: true },
+                    { text: "II e III, apenas.", correct: false },
+                    { text: "I, II e III.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>B</strong>. O item I está correto (Art. 12, XI). O item II está correto (Art. 12, IX). O item III é falso, pois o Art. 12, inciso VIII, alínea 'b' obriga os estabelecimentos a notificar o Conselho Tutelar sobre ocorrências de violência que envolvam automutilações, tentativas de suicídio e suicídios consumados."
+            },
+            {
+                id: 10,
+                type: "objective",
+                statement: "Tendo em vista a repartição de competências e o foco prioritário de atendimento previsto na LDB para os Municípios (Art. 11), é juridicamente correto afirmar que:",
+                options: [
+                    { text: "O Município está impedido, sob qualquer hipótese, de atuar em outros níveis de ensino além da educação infantil e do ensino fundamental.", correct: false },
+                    { text: "O Município poderá atuar em outros níveis de ensino somente quando estiverem atendidas plenamente as necessidades de sua área de competência e com recursos acima dos percentuais mínimos constitucionais.", correct: true },
+                    { text: "A educação infantil em creches deve ser oferecida estritamente nas zonas urbanas, ficando a zona rural a encargo financeiro da União.", correct: false },
+                    { text: "O Município deve autorizar, credenciar e supervisionar estabelecimentos privados de ensino superior situados em seu território.", correct: false }
+                ],
+                feedback: "A alternativa correta é a <strong>B</strong>, que traz a redação exata do Art. 11, inciso V da LDB. A letra A está errada porque a atuação em outros níveis é permitida (mediante as condições citadas na letra B). A letra C está errada porque a educação infantil deve ser oferecida tanto na zona urbana quanto na rural. A letra D erra ao atribuir ao Município o credenciamento de ensino superior (atribuição da União/Estado)."
+            }
+        ];
+
+        // Variáveis de Estado
+        let currentAnswers = 0;
+        let correctAnswersCount = 0;
+        const totalQuestions = questions.length;
+        
+        // Relógio
+        let timerInterval;
+        let secondsPassed = 0;
+        let isTimerRunning = false;
+
+        function startTimer() {
+            if(isTimerRunning) return;
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                secondsPassed++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(secondsPassed / 60).toString().padStart(2, '0');
+            const seconds = (secondsPassed % 60).toString().padStart(2, '0');
+            document.getElementById('timer-display').innerText = `⏱ ${minutes}:${seconds}`;
+        }
+
+        // Renderização Dinâmica
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            questions.forEach((q, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-card';
+                questionElement.id = `q-card-${q.id}`;
+
+                let optionsHTML = '';
+                const letters = ['A', 'B', 'C', 'D'];
+
+                q.options.forEach((opt, optIndex) => {
+                    optionsHTML += `
+                        <div class="option" id="opt-${q.id}-${optIndex}" onclick="handleSelection(${q.id}, ${optIndex}, ${opt.correct})">
+                            <div class="option-letter">${letters[optIndex]}</div>
+                            <div class="option-text">${opt.text}</div>
+                        </div>
+                    `;
+                });
+
+                questionElement.innerHTML = `
+                    <div class="question-header">
+                        <span class="question-number">Questão ${index + 1}</span>
+                    </div>
+                    <div class="question-statement">${q.statement}</div>
+                    <div class="options-list" id="opts-container-${q.id}">
+                        ${optionsHTML}
+                    </div>
+                    <div class="feedback" id="feedback-${q.id}">
+                        <h4>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Comentário do Professor:
+                        </h4>
+                        <p>${q.feedback}</p>
+                    </div>
+                `;
+
+                container.appendChild(questionElement);
+            });
+        }
+
+        // Lógica de Resposta
+        function handleSelection(questionId, selectedIndex, isCorrect) {
+            const container = document.getElementById(`opts-container-${questionId}`);
+            
+            // Impede duplo clique / retentativa
+            if(container.classList.contains('answered')) return;
+            container.classList.add('answered');
+
+            const q = questions.find(question => question.id === questionId);
+            
+            // Atualiza Estilos das Alternativas
+            q.options.forEach((opt, idx) => {
+                const optElement = document.getElementById(`opt-${questionId}-${idx}`);
+                optElement.classList.add('disabled');
+
+                if(idx === selectedIndex) {
+                    if(isCorrect) {
+                        optElement.classList.add('correta');
+                        correctAnswersCount++;
+                    } else {
+                        optElement.classList.add('incorreta');
+                    }
+                }
+                
+                // Se o aluno errou, mostra qual era a correta
+                if(!isCorrect && opt.correct) {
+                    optElement.classList.add('correta');
+                }
+            });
+
+            // Exibe Feedback
+            document.getElementById(`feedback-${questionId}`).style.display = 'block';
+
+            // Atualiza Dashboard
+            currentAnswers++;
+            document.getElementById('progress-display').innerText = `Progresso: ${currentAnswers}/${totalQuestions}`;
+
+            // Fim do Simulado
+            if(currentAnswers === totalQuestions) {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            stopTimer();
+            setTimeout(() => {
+                document.getElementById('final-score').innerText = `${correctAnswersCount}/${totalQuestions}`;
+                
+                const minutes = Math.floor(secondsPassed / 60).toString().padStart(2, '0');
+                const seconds = (secondsPassed % 60).toString().padStart(2, '0');
+                document.getElementById('final-time').innerText = `${minutes}:${seconds}`;
+                
+                document.getElementById('result-modal').style.display = 'flex';
+            }, 800); // Delay suave antes de subir a tela de fim
+        }
+
+        // Inicializa ao carregar a página
+        window.onload = () => {
+            renderQuiz();
+            startTimer();
+        };
+
+    </script>
+</body>
+</html>

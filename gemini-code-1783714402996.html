@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado SEDUC CE - FUNECE: Educação Profissional Técnica de Nível Médio</title>
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Azul institucional FUNECE */
+            --secondary: #2563eb;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --success-bg: #dcfce7;
+            --success-border: #16a34a;
+            --success-text: #166534;
+            --error-bg: #fee2e2;
+            --error-border: #dc2626;
+            --error-text: #991b1b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+
+        /* Cabeçalho Fixo */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Container de Questões */
+        main {
+            max-width: 850px;
+            margin: 2.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header h2 {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .question-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: var(--background);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .enunciado {
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+            color: #334155;
+        }
+
+        .itens-romanos {
+            margin: 1rem 0 1rem 2rem;
+            list-style-type: upper-roman;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        /* Alternativas */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.2rem;
+            background-color: var(--surface);
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .option:hover:not(.desabilitada) {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .option-letter {
+            font-weight: bold;
+            background-color: var(--background);
+            color: var(--text-muted);
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1.2rem;
+            border: 2px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        /* Classes Dinâmicas de Estado */
+        .option.correta {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success-border) !important;
+            color: var(--success-text) !important;
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--success-border);
+            color: white;
+            border-color: var(--success-border);
+        }
+
+        .option.incorreta {
+            background-color: var(--error-bg) !important;
+            border-color: var(--error-border) !important;
+            color: var(--error-text) !important;
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--error-border);
+            color: white;
+            border-color: var(--error-border);
+        }
+
+        .desabilitada {
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        /* Feedback do Professor */
+        .feedback {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            background-color: #f0f9ff;
+            border-left: 5px solid #0284c7;
+            border-radius: 0 8px 8px 0;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .feedback h3 {
+            color: #0369a1;
+            font-size: 1.05rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback p {
+            font-size: 0.95rem;
+            color: #0c4a6e;
+            text-align: justify;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Final */
+        #end-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .end-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .end-card h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .end-card p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .score-highlight {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 1.5rem 0;
+            line-height: 1;
+        }
+
+        .btn-restart {
+            margin-top: 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn-restart:hover {
+            background-color: #152c6b;
+        }
+
+        @media(max-width: 640px) {
+            header { flex-direction: column; gap: 1rem; text-align: center; }
+            .status-panel { width: 100%; justify-content: center; }
+            .question-card { padding: 1.5rem 1rem; }
+            .option { padding: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado SEDUC CE (Banca FUNECE)</h1>
+            <p>Educação Profissional Técnica de Nível Médio (Arts. 36-A a 36-D da LDB)</p>
+        </div>
+        <div class="status-panel">
+            <div class="status-item">
+                <span>Progresso:</span>
+                <span id="progresso">0/10</span>
+            </div>
+            <div class="status-item">
+                <span>Tempo:</span>
+                <span id="cronometro">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- Injeção via JS -->
+    </main>
+
+    <div id="end-screen">
+        <div class="end-card">
+            <h2>Simulado Concluído!</h2>
+            <p>Confira seu desempenho final na prova.</p>
+            <div class="score-highlight" id="final-score">0/10</div>
+            <p>Tempo de resolução: <strong id="final-time">00:00</strong></p>
+            <button class="btn-restart" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                id: 1,
+                enunciado: "De acordo com o caput e o parágrafo único do Art. 36-A da Lei de Diretrizes e Bases da Educação Nacional (LDB), o ensino médio poderá preparar o educando para o exercício de profissões técnicas. A respeito da preparação geral para o trabalho e a habilitação profissional nessa etapa da educação básica, é correto afirmar que:",
+                alternativas: [
+                    { texto: "Ambas são de oferta compulsória e devem ser desenvolvidas exclusivamente nas instituições especializadas em educação profissional, vedada a oferta no próprio estabelecimento de ensino médio.", correta: false },
+                    { texto: "A preparação geral para o trabalho é obrigatória, enquanto a habilitação profissional é facultativa, podendo ambas serem desenvolvidas nos próprios estabelecimentos de ensino médio ou em cooperação com instituições especializadas.", correta: true },
+                    { texto: "A habilitação profissional integra a Base Nacional Comum Curricular (BNCC), sendo de caráter estritamente compulsório para todos os discentes, independentemente de sua opção formativa.", correta: false },
+                    { texto: "A LDB veda, de forma peremptória, a cooperação entre os estabelecimentos de ensino médio e as instituições especializadas em educação profissional para o desenvolvimento da habilitação técnica.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B está correta.</strong> Conforme o Parágrafo único do Art. 36-A da LDB: 'A preparação geral para o trabalho e, <strong>facultativamente</strong>, a habilitação profissional poderão ser desenvolvidas nos próprios estabelecimentos de ensino médio ou em cooperação com instituições especializadas em educação profissional.'"
+            },
+            {
+                id: 2,
+                enunciado: "Analise os itens abaixo acerca das formas de desenvolvimento da educação profissional técnica de nível médio estabelecidas pelo Art. 36-B da LDB e identifique a opção correta:<br><ul class='itens-romanos'><li>I. Será desenvolvida de forma articulada com o ensino médio.</li><li>II. Será desenvolvida de forma subsequente, em cursos destinados a quem já tenha concluído o ensino médio.</li><li>III. Será desenvolvida de forma antecedente, destinada àqueles que ainda não concluíram o ensino fundamental.</li></ul>Estão corretas as assertivas:",
+                alternativas: [
+                    { texto: "I e II, apenas.", correta: true },
+                    { texto: "I e III, apenas.", correta: false },
+                    { texto: "II e III, apenas.", correta: false },
+                    { texto: "I, II e III.", correta: false }
+                ],
+                feedback: "<strong>A alternativa A está correta.</strong> O Art. 36-B estabelece exclusivamente duas formas para o desenvolvimento da educação profissional técnica de nível médio: articulada com o ensino médio (inciso I) e subsequente, para quem já o concluiu (inciso II). Não existe a figura de educação técnica 'antecedente' antes da conclusão do fundamental neste contexto (o que invalida o item III)."
+            },
+            {
+                id: 3,
+                enunciado: "A forma pela qual a educação profissional técnica de nível médio pode ser articulada com o ensino médio reveste-se de grande rigor legal na LDB. Segundo o Art. 36-C, a articulação classificada como <strong>INTEGRADA</strong>, oferecida a quem já concluiu o ensino fundamental, caracteriza-se precipuamente por:",
+                alternativas: [
+                    { texto: "Ocorrer em instituições de ensino distintas, aproveitando-se as oportunidades educacionais, mediante convênios de intercomplementaridade para o planejamento pedagógico.", correta: false },
+                    { texto: "Exigir matrículas distintas para o ensino médio e para o curso técnico, ainda que ministrados na mesma instituição e espaço físico.", correta: false },
+                    { texto: "Ser conduzida em matrículas separadas para quem já esteja cursando o ensino médio em estágio avançado, garantindo terminalidades independentes.", correta: false },
+                    { texto: "Conduzir o aluno à habilitação profissional técnica de nível médio na mesma instituição de ensino, efetuando-se matrícula única para cada aluno.", correta: true }
+                ],
+                feedback: "<strong>A alternativa D está correta.</strong> Nos exatos termos do inciso I do Art. 36-C, a forma <strong>integrada</strong> é oferecida 'somente a quem já tenha concluído o ensino fundamental, sendo o curso planejado de modo a conduzir o aluno à habilitação profissional técnica de nível médio, na mesma instituição de ensino, efetuando-se matrícula única para cada aluno'. As demais opções referem-se à modalidade concomitante."
+            },
+            {
+                id: 4,
+                enunciado: "Por outro lado, o inciso II do Art. 36-C da LDB trata da educação profissional técnica de nível médio articulada de forma <strong>CONCOMITANTE</strong>. A respeito desta modalidade, assinale a afirmação correta:",
+                alternativas: [
+                    { texto: "É oferecida de forma restrita a quem já tenha concluído totalmente o ensino médio, tratando-se, portanto, de uma especialização de nível superior.", correta: false },
+                    { texto: "É oferecida a quem ingresse no ensino médio ou já o esteja cursando, sendo essencial a efetuação de matrículas distintas para cada curso (o médio e o técnico).", correta: true },
+                    { texto: "Ocorre sob regime de matrícula única, sendo inviável a sua realização em instituições de ensino distintas, sob pena de perda da validade nacional do diploma.", correta: false },
+                    { texto: "Só pode ser implementada mediante prévia aprovação do Conselho Nacional de Educação e desde que o aluno tenha idade mínima de 18 anos completos.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B está correta.</strong> Conforme o Art. 36-C, II, a forma concomitante é oferecida a quem ingresse no ensino médio ou já o esteja cursando, efetuando-se <strong>matrículas distintas</strong> para cada curso, podendo ocorrer na mesma instituição ou em instituições distintas."
+            },
+            {
+                id: 5,
+                enunciado: "A Lei nº 14.645/2023 introduziu alterações importantes nos parágrafos do Art. 36-B da LDB, associando a educação profissional à aprendizagem. Avalie as proposições:<br><ul class='itens-romanos'><li>I. A educação profissional técnica de nível médio não poderá ser oferecida em articulação com a aprendizagem profissional, devendo manter-se estritamente desvinculada dela.</li><li>II. Poderá haver aproveitamento das atividades pedagógicas de educação profissional técnica de nível médio para efeito de cumprimento do contrato de aprendizagem profissional.</li><li>III. É previsto o aproveitamento das horas de trabalho em aprendizagem profissional para efeito de integralização da carga horária do ensino médio, no itinerário da formação técnica.</li></ul>É correto o que se afirma em:",
+                alternativas: [
+                    { texto: "I, apenas.", correta: false },
+                    { texto: "II e III, apenas.", correta: true },
+                    { texto: "I e II, apenas.", correta: false },
+                    { texto: "I, II e III.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B está correta.</strong> O item I é falso, pois o § 2º do Art. 36-B expressamente autoriza a articulação com a aprendizagem profissional (Lei nº 10.097/2000). Os itens II e III estão corretos e representam as hipóteses literais de aproveitamento mútuo previstas nos incisos I e II do § 3º do Art. 36-B."
+            },
+            {
+                id: 6,
+                enunciado: "Acerca dos diplomas emitidos na conclusão da educação profissional técnica de nível médio, o Art. 36-D da Lei de Diretrizes e Bases da Educação Nacional prescreve garantias ao egresso. Sob essa diretriz legal, assinale a opção correta:",
+                alternativas: [
+                    { texto: "Os diplomas de cursos de educação profissional técnica de nível médio, quando registrados, terão validade nacional e habilitarão ao prosseguimento de estudos na educação superior.", correta: true },
+                    { texto: "Tais diplomas possuem validade adstrita ao território do ente federativo emissor, não garantindo acesso automático às universidades federais localizadas noutros Estados.", correta: false },
+                    { texto: "O diploma técnico anula e substitui a emissão do certificado de conclusão do ensino médio, vedando o ingresso em cursos de bacharelado.", correta: false },
+                    { texto: "A habilitação para o prosseguimento de estudos na educação superior dependerá da realização de exame complementar perante o Ministério da Educação, caso o curso seja concomitante.", correta: false }
+                ],
+                feedback: "<strong>A alternativa A está correta.</strong> Trata-se da letra fiel do caput do Art. 36-D: 'Os diplomas de cursos de educação profissional técnica de nível médio, quando registrados, terão validade nacional e habilitarão ao prosseguimento de estudos na educação superior.'"
+            },
+            {
+                id: 7,
+                enunciado: "O parágrafo único do Art. 36-D estabelece uma possibilidade de certificação ao longo da trajetória do educando na educação profissional técnica de nível médio. Considere o texto legal e identifique a alternativa que adequadamente o espelha:",
+                alternativas: [
+                    { texto: "A certificação fragmentada é expressamente vedada pela LDB, uma vez que a educação técnica deve possuir currículo monobloco e ininterrupto.", correta: false },
+                    { texto: "Os cursos de educação profissional técnica, quando estruturados e organizados em etapas com terminalidade, possibilitarão a obtenção de certificados de qualificação para o trabalho após a conclusão de cada etapa.", correta: true },
+                    { texto: "Certificados de qualificação para o trabalho poderão ser emitidos precocemente sem a conclusão da respectiva etapa, bastando apenas a frequência mínima de 75%.", correta: false },
+                    { texto: "As etapas com terminalidade que caracterizem uma qualificação para o trabalho só podem ser ofertadas na forma subsequente, nunca nas formas articulada integrada ou concomitante.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B está correta.</strong> Segundo o parágrafo único do Art. 36-D: 'Os cursos de educação profissional técnica de nível médio, nas formas articulada concomitante e subsequente, quando estruturados e organizados em etapas com terminalidade, possibilitarão a obtenção de certificados de qualificação para o trabalho...'"
+            },
+            {
+                id: 8,
+                enunciado: "No contexto da forma <strong>concomitante</strong> de oferta (Art. 36-C, II), a LDB prevê três configurações distintas para o aluno que já ingressou ou está cursando o ensino médio efetuar suas matrículas. Assinale a opção que <strong>NÃO</strong> representa uma dessas possibilidades legais:",
+                alternativas: [
+                    { texto: "Na mesma instituição de ensino, aproveitando-se as oportunidades educacionais disponíveis.", correta: false },
+                    { texto: "Em instituições de ensino distintas, sem necessidade de convênio prévio, mas aproveitando-se as oportunidades educacionais disponíveis.", correta: false },
+                    { texto: "Em instituições de ensino distintas, mediante convênios de intercomplementaridade, visando ao planejamento unificado.", correta: false },
+                    { texto: "Na mesma instituição de ensino, contanto que o currículo do ensino técnico seja cursado exclusivamente em modalidade de educação a distância (EaD), vedada a forma presencial mista.", correta: true }
+                ],
+                feedback: "<strong>A alternativa D é a resposta (pede-se a incorreta).</strong> O Art. 36-C, inciso II, elenca nas alíneas 'a', 'b' e 'c' as configurações contempladas nas alternativas A, B e C, respectivamente. Não existe, nesse dispositivo, qualquer restrição que obrigue a adoção exclusiva de Educação a Distância (EaD) para cursos na mesma instituição."
+            },
+            {
+                id: 9,
+                enunciado: "Avalie a conformidade das afirmações a seguir com o que preceitua o § 1º do Art. 36-B da LDB sobre os referenciais que devem ser observados pela educação profissional técnica de nível médio:<br><ul class='itens-romanos'><li>I. Deve observar os objetivos e definições contidos nas diretrizes curriculares nacionais estabelecidas pelo Conselho Nacional de Educação.</li><li>II. Fica desobrigada de seguir as normas complementares dos respectivos sistemas de ensino devido à sua autonomia curricular plena.</li><li>III. Deve observar as exigências de cada instituição de ensino, nos termos de seu próprio projeto pedagógico.</li></ul>Estão em conformidade com a LDB as assertivas:",
+                alternativas: [
+                    { texto: "I e II, apenas.", correta: false },
+                    { texto: "I e III, apenas.", correta: true },
+                    { texto: "II e III, apenas.", correta: false },
+                    { texto: "I, II e III.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B está correta.</strong> O item I está correto (inciso I do §1º). O item III está correto (inciso III do §1º). O item II está incorreto, pois o inciso II do §1º determina que a educação técnica <strong>deverá observar</strong> as normas complementares dos respectivos sistemas de ensino, não possuindo autonomia absoluta que as ignore."
+            },
+            {
+                id: 10,
+                enunciado: "Um gestor escolar, ao planejar a oferta de ensino técnico em sua unidade estadual (escola pública cearense), argumentou o seguinte à equipe pedagógica: <em>'Nós devemos instituir a forma articulada integrada para os alunos que ainda estão na 8ª série do ensino fundamental, garantindo-lhes precocemente a vaga no ensino médio e a matrícula única do curso técnico.'</em> Com base no rigor normativo da Seção IV-A (Art. 36-C, inciso I) da LDB, o planejamento do gestor é:",
+                alternativas: [
+                    { texto: "Lícito, pois a LDB faculta o ingresso antecipado na educação técnica integrada para combater a evasão no último ciclo do ensino fundamental.", correta: false },
+                    { texto: "Ilícito, uma vez que a forma articulada integrada é oferecida somente a quem já tenha concluído o ensino fundamental integralmente.", correta: true },
+                    { texto: "Lícito, contanto que o Conselho Estadual de Educação do Ceará emita um parecer normativo validando o fluxo migratório precoce dos alunos.", correta: false },
+                    { texto: "Ilícito, pois o ensino técnico de nível médio foi banido das escolas estaduais públicas regulares após as recentes alterações da lei do ensino médio.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B está correta.</strong> A argumentação do gestor fere frontalmente o Art. 36-C, inciso I, da LDB, o qual determina taxativamente que a forma articulada integrada será oferecida '<strong>somente a quem já tenha concluído o ensino fundamental</strong>'. Ingressos precoces sem a conclusão desta etapa não têm amparo neste regramento legal."
+            }
+        ];
+
+        let answeredQuestions = 0;
+        let acertos = 0;
+        let tempoSegundos = 0;
+        let timerInterval;
+
+        function formatarTempo(segundos) {
+            const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const seg = (segundos % 60).toString().padStart(2, '0');
+            return `${min}:${seg}`;
+        }
+
+        function iniciarCronometro() {
+            timerInterval = setInterval(() => {
+                tempoSegundos++;
+                document.getElementById('cronometro').innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function pararCronometro() {
+            clearInterval(timerInterval);
+        }
+
+        function renderizarQuestoes() {
+            const container = document.getElementById('quiz-container');
+            const letras = ['A', 'B', 'C', 'D'];
+
+            questoes.forEach((q, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card';
+                qCard.id = `questao-${index}`;
+
+                let htmlContent = `
+                    <div class="question-header">
+                        <h2>Questão ${index + 1} de 10</h2>
+                        <span class="question-meta">Nível: Médio/Difícil</span>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-container" id="options-${index}">
+                `;
+
+                q.alternativas.forEach((alt, i) => {
+                    htmlContent += `
+                        <div class="option" onclick="registrarResposta(${index}, ${i}, ${alt.correta})">
+                            <div class="option-letter">${letras[i]}</div>
+                            <div class="option-text">${alt.texto}</div>
+                        </div>
+                    `;
+                });
+
+                htmlContent += `
+                    </div>
+                    <div class="feedback" id="feedback-${index}">
+                        <h3>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Comentário do Professor (Padrão FUNECE)
+                        </h3>
+                        <p>${q.feedback}</p>
+                    </div>
+                `;
+
+                qCard.innerHTML = htmlContent;
+                container.appendChild(qCard);
+            });
+        }
+
+        function registrarResposta(questaoIndex, altIndex, isCorreta) {
+            const optionsContainer = document.getElementById(`options-${questaoIndex}`);
+            
+            // Impede cliques múltiplos
+            if (optionsContainer.classList.contains('respondida')) return;
+            optionsContainer.classList.add('respondida');
+
+            const alternativasDivs = optionsContainer.querySelectorAll('.option');
+
+            alternativasDivs.forEach((alt, idx) => {
+                // Desabilita interação de todas
+                alt.classList.add('desabilitada');
+                
+                // Lógica de cores baseada no clique e na resposta
+                if (idx === altIndex) { 
+                    if (isCorreta) {
+                        alt.classList.add('correta');
+                        acertos++;
+                    } else {
+                        alt.classList.add('incorreta');
+                    }
+                }
+
+                // Destaca a alternativa que sempre foi a verdadeira
+                if (questoes[questaoIndex].alternativas[idx].correta) {
+                    alt.classList.add('correta');
+                }
+            });
+
+            // Exibe o comentário
+            document.getElementById(`feedback-${questaoIndex}`).style.display = 'block';
+
+            // Atualiza status superior
+            answeredQuestions++;
+            document.getElementById('progresso').innerText = `${answeredQuestions}/10`;
+
+            // Verifica fim de prova
+            if (answeredQuestions === questoes.length) {
+                finalizarProva();
+            }
+        }
+
+        function finalizarProva() {
+            pararCronometro();
+            
+            // Mostra o modal com leve delay
+            setTimeout(() => {
+                document.getElementById('final-score').innerText = `${acertos}/10`;
+                document.getElementById('final-time').innerText = formatarTempo(tempoSegundos);
+                document.getElementById('end-screen').style.display = 'flex';
+            }, 1000); 
+        }
+
+        window.onload = () => {
+            renderizarQuestoes();
+            iniciarCronometro();
+        };
+    </script>
+</body>
+</html>

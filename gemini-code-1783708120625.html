@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado FUNECE/UECE - SEDUC CE: LDB (Títulos I, II e III)</title>
+    <style>
+        :root {
+            --primary: #1A365D;
+            --secondary: #2B6CB0;
+            --correct: #2F855A;
+            --correct-bg: #C6F6D5;
+            --incorrect: #C53030;
+            --incorrect-bg: #FED7D7;
+            --bg: #F7FAFC;
+            --card-bg: #FFFFFF;
+            --text-main: #2D3748;
+            --text-muted: #718096;
+            --border: #E2E8F0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+
+        /* Header e Placar */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .header-title p {
+            font-size: 0.875rem;
+            color: #E2E8F0;
+        }
+
+        .stats-panel {
+            display: flex;
+            gap: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        /* Container Principal */
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Questões */
+        .question-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        .question-header h2 {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .enunciado {
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .itens-romanos {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            list-style-type: upper-roman;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Alternativas */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            padding: 12px 16px;
+            background-color: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--text-main);
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            background-color: #EDF2F7;
+            border-color: #CBD5E0;
+        }
+
+        .option-letter {
+            font-weight: bold;
+            margin-right: 15px;
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Estados das Alternativas */
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct-bg);
+            border-color: var(--correct);
+            color: var(--correct);
+        }
+
+        .option-btn.correct .option-letter {
+            background-color: var(--correct);
+        }
+
+        .option-btn.incorrect {
+            background-color: var(--incorrect-bg);
+            border-color: var(--incorrect);
+            color: var(--incorrect);
+        }
+
+        .option-btn.incorrect .option-letter {
+            background-color: var(--incorrect);
+        }
+
+        /* Comentário do Professor */
+        .feedback-panel {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background-color: #F7FAFC;
+            border-left: 4px solid var(--secondary);
+            border-radius: 4px;
+            animation: fadeIn 0.5s;
+        }
+
+        .feedback-panel h4 {
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-panel p {
+            font-size: 0.95rem;
+            text-align: justify;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal de Conclusão */
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .modal-content p {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--correct);
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado SEDUC CE (Padrão FUNECE)</h1>
+            <p>LDB - Lei de Diretrizes e Bases da Educação Nacional (Arts. 1º ao 7º-A)</p>
+        </div>
+        <div class="stats-panel">
+            <div id="progress">0 / 10</div>
+            <div id="timer">00:00</div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- As questões serão geradas pelo JavaScript aqui -->
+    </main>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2>Simulado Concluído!</h2>
+            <p>Seu desempenho final:</p>
+            <div class="highlight-score" id="final-score">0/10</div>
+            <p>Tempo de prova: <strong id="final-time">00:00</strong></p>
+            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem;">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 1,
+                type: "objetiva",
+                text: "Segundo a Lei de Diretrizes e Bases da Educação Nacional (LDB), a educação abrange os processos formativos que se desenvolvem na vida familiar, na convivência humana, no trabalho, nas instituições de ensino e pesquisa, nos movimentos sociais e nas manifestações culturais. Considerando o texto legal, assinale a afirmação correta sobre a educação escolar:",
+                options: [
+                    { letter: "A", text: "Desenvolve-se, exclusivamente, por meio do ensino em instituições próprias, não possuindo vínculo obrigatório com a prática social.", correct: false },
+                    { letter: "B", text: "Deverá vincular-se ao mundo do trabalho e à prática social, desenvolvendo-se, predominantemente, em instituições próprias.", correct: true },
+                    { letter: "C", text: "É dever exclusivo do Estado, inspirada nos princípios de liberdade e nos ideais de solidariedade humana.", correct: false },
+                    { letter: "D", text: "Abrange todas as manifestações formativas da sociedade, sendo a escola a única responsável por certificar o desenvolvimento extraescolar.", correct: false }
+                ],
+                feedback: "A alternativa B está correta (Art. 1º, § 1º e § 2º). A educação escolar desenvolve-se predominantemente (não exclusivamente, erro da A) em instituições próprias e deverá vincular-se ao mundo do trabalho e à prática social. A alternativa C erra ao dizer que é dever 'exclusivo' do Estado (é dever da família e do Estado, Art. 2º)."
+            },
+            {
+                id: 2,
+                type: "contemplacao",
+                text: "Com base no Art. 3º da LDB, que trata dos Princípios e Fins da Educação Nacional, analise os itens a seguir:<br><br><ul class='itens-romanos'><li>I. Pluralismo de ideias e de concepções pedagógicas.</li><li>II. Coexistência de instituições públicas e privadas de ensino.</li><li>III. Garantia do direito de acesso a informações públicas sobre a gestão da educação.</li><li>IV. Valorização estrita da experiência escolar formal, em detrimento dos saberes extraescolares.</li></ul><br>É correto o que se afirma em:",
+                options: [
+                    { letter: "A", text: "I e II, apenas.", correct: false },
+                    { letter: "B", text: "I, II e III, apenas.", correct: true },
+                    { letter: "C", text: "II, III e IV, apenas.", correct: false },
+                    { letter: "D", text: "I, II, III e IV.", correct: false }
+                ],
+                feedback: "A alternativa B é a correta. Os itens I e II são princípios clássicos do Art. 3º (incisos III e V). O item III está correto e é uma atualização recente (inciso XV, incluído em 2024). O item IV é falso, pois a LDB estabelece a 'valorização da experiência extraescolar' (inciso X) e não em detrimento dela."
+            },
+            {
+                id: 3,
+                type: "objetiva",
+                text: "O Art. 4º da LDB discorre sobre o dever do Estado com a educação escolar pública. Entre as garantias que efetivam esse dever, é correto apontar:",
+                options: [
+                    { letter: "A", text: "A educação básica obrigatória e gratuita dos 0 (zero) aos 17 (dezessete) anos de idade.", correct: false },
+                    { letter: "B", text: "O atendimento educacional especializado gratuito aos educandos com deficiência, oferecido de modo transversal, exclusivamente em escolas especializadas.", correct: false },
+                    { letter: "C", text: "A oferta de educação infantil gratuita às crianças de até 5 (cinco) anos de idade.", correct: true },
+                    { letter: "D", text: "A garantia de vaga na escola pública mais próxima de sua residência a toda criança a partir do dia em que completar 5 (cinco) anos de idade.", correct: false }
+                ],
+                feedback: "A alternativa C é a correta, conforme Art. 4º, inciso II. A alternativa A está errada porque a obrigatoriedade é dos 4 aos 17 anos (inciso I). A alternativa B está errada pois o AEE é oferecido 'preferencialmente na rede regular de ensino' (inciso III). A alternativa D está errada pois a garantia de vaga próxima à residência se dá a partir dos 4 anos de idade (inciso X)."
+            },
+            {
+                id: 4,
+                type: "contemplacao",
+                text: "Avanços legislativos recentes atualizaram o rol de garantias do dever do Estado com a educação escolar pública. A respeito dessas garantias (Art. 4º da LDB), julgue os itens:<br><br><ul class='itens-romanos'><li>I. A educação digital é garantida com conectividade de todas as instituições públicas de educação básica e superior, promovendo o letramento digital.</li><li>II. É assegurada água potável e infraestrutura física e sanitária adequadas no ambiente escolar.</li><li>III. A alfabetização plena e a capacitação gradual para a leitura são requisitos apenas para a etapa do Ensino Fundamental.</li></ul><br>Estão corretas as assertivas:",
+                options: [
+                    { letter: "A", text: "I e II, apenas.", correct: true },
+                    { letter: "B", text: "I e III, apenas.", correct: false },
+                    { letter: "C", text: "II e III, apenas.", correct: false },
+                    { letter: "D", text: "I, II e III.", correct: false }
+                ],
+                feedback: "A alternativa A está correta. O item I reflete a inclusão da Lei nº 14.533/2023 (Art. 4º, XII). O item II reflete a recente Lei nº 15.276/2025 (Art. 4º, XIII). O item III é falso, pois a alfabetização e capacitação para leitura são requisitos para 'ao longo da educação básica' (Art. 4º, XI), e não apenas no Ensino Fundamental."
+            },
+            {
+                id: 5,
+                type: "objetiva",
+                text: "O acesso à educação básica obrigatória é um direito público subjetivo. A respeito deste direito e de sua exigibilidade (Art. 5º da LDB), assinale a alternativa incorreta:",
+                options: [
+                    { letter: "A", text: "Qualquer cidadão ou associação comunitária pode acionar o poder público para exigi-lo.", correct: false },
+                    { letter: "B", text: "Comprovada a negligência da autoridade competente em oferecer o ensino obrigatório, esta poderá ser imputada por crime de responsabilidade.", correct: false },
+                    { letter: "C", text: "O Poder Público deverá assegurar primariamente o acesso ao ensino obrigatório, e subsequentemente os demais níveis e modalidades de ensino.", correct: false },
+                    { letter: "D", text: "A ação judicial correspondente para exigir o ensino obrigatório possui custos judiciais atrelados à complexidade da causa, não possuindo rito sumário.", correct: true }
+                ],
+                feedback: "A alternativa D é a INCORRETA (gabarito). Segundo o Art. 5º, § 3º, a ação judicial é 'gratuita e de rito sumário'. As alternativas A (caput), B (§ 4º) e C (§ 2º) estão perfeitamente alinhadas ao texto da LDB."
+            },
+            {
+                id: 6,
+                type: "contemplacao",
+                text: "O dever de transparência na educação foi significativamente ampliado na LDB. Sobre o acesso à informação e dados educacionais, avalie as afirmativas de acordo com o Art. 5º:<br><br><ul class='itens-romanos'><li>I. O poder público deve divulgar a lista de espera por vagas nos estabelecimentos de educação básica, inclusive creches, por ordem de colocação.</li><li>II. Dados e microdados censitários ou avaliativos devem ser divulgados preferencialmente com identificação nominal dos estudantes para auditoria popular.</li><li>III. Os pais e responsáveis têm a garantia de acesso aos resultados das avaliações de qualidade e rendimento escolar.</li></ul><br>Está correto o que se indica em:",
+                options: [
+                    { letter: "A", text: "I e II, apenas.", correct: false },
+                    { letter: "B", text: "I e III, apenas.", correct: true },
+                    { letter: "C", text: "II e III, apenas.", correct: false },
+                    { letter: "D", text: "I, II e III.", correct: false }
+                ],
+                feedback: "A alternativa B é a correta. O item I está correto (Art. 5º, § 1º, IV, incluído em 2023). O item II é falso, pois a lei estabelece que os dados sejam divulgados e compartilhados 'sempre que possível, de forma anonimizada' (§ 8º). O item III está correto (Art. 5º, § 1º, V, incluído em 2024)."
+            },
+            {
+                id: 7,
+                type: "objetiva",
+                text: "No que tange aos deveres da família e às condições da iniciativa privada no ensino (Arts. 6º e 7º da LDB), assinale a alternativa que apresenta de forma exata a determinação legal:",
+                options: [
+                    { letter: "A", text: "É dever dos pais efetuar a matrícula das crianças na educação básica a partir dos 5 (cinco) anos de idade, coincidindo com a pré-escola.", correct: false },
+                    { letter: "B", text: "O ensino é livre à iniciativa privada, desde que as instituições particulares sejam subsidiadas parcialmente pelo Estado para garantir padrão de qualidade.", correct: false },
+                    { letter: "C", text: "A atuação da iniciativa privada no ensino exige autorização de funcionamento e avaliação de qualidade pelo Poder Público.", correct: true },
+                    { letter: "D", text: "A iniciativa privada não está obrigada a cumprir as normas gerais da educação nacional, possuindo autonomia normativa plena e irrestrita.", correct: false }
+                ],
+                feedback: "A alternativa C está correta (Art. 7º, inciso II). A alternativa A está errada porque a matrícula é obrigatória a partir dos 4 anos (Art. 6º). A alternativa B está errada pois a iniciativa privada deve ter 'capacidade de autofinanciamento' (Art. 7º, III). A alternativa D é falsa, pois o cumprimento das normas gerais é condição obrigatória (Art. 7º, I)."
+            },
+            {
+                id: 8,
+                type: "contemplacao",
+                text: "Em relação ao direito de escusa de consciência por motivos religiosos nas instituições de ensino (Art. 7º-A), julgue as proposições:<br><br><ul class='itens-romanos'><li>I. O aluno que se ausentar por preceito religioso perde o direito ao registro de frequência, recebendo falta justificada sem reposição.</li><li>II. A prestação alternativa pode consistir em prova de reposição em data alternativa, com anuência expressa do aluno.</li><li>III. A prestação alternativa poderá ser cobrada financeiramente da família em instituições de ensino privadas.</li><li>IV. Este direito não se aplica ao ensino militar.</li></ul><br>As afirmativas corretas são:",
+                options: [
+                    { letter: "A", text: "II e IV, apenas.", correct: true },
+                    { letter: "B", text: "I e II, apenas.", correct: false },
+                    { letter: "C", text: "III e IV, apenas.", correct: false },
+                    { letter: "D", text: "II, III e IV, apenas.", correct: false }
+                ],
+                feedback: "A alternativa A é a correta. O item I é falso (a prestação alternativa substitui a obrigação original, inclusive regularizando a frequência, § 2º). O item II é verdadeiro (Art. 7º-A, I). O item III é falso, pois a LDB é clara ao dizer 'sem custos para o aluno'. O item IV é verdadeiro (Art. 7º-A, § 4º)."
+            },
+            {
+                id: 9,
+                type: "objetiva",
+                text: "A LDB, ao tratar do direito à educação em circunstâncias peculiares de saúde (Art. 4º-A), estabelece regramento específico para os estudantes. Assinale a alternativa que reflete o texto normativo:",
+                options: [
+                    { letter: "A", text: "É assegurado o atendimento educacional exclusivamente durante o período de internação hospitalar, vedada a assistência domiciliar para fins de cômputo letivo.", correct: false },
+                    { letter: "B", text: "O aluno da educação básica internado para tratamento de saúde em regime hospitalar ou domiciliar por tempo prolongado tem assegurado o atendimento educacional.", correct: true },
+                    { letter: "C", text: "A oferta de escolarização hospitalar é um direito restrito aos alunos do Ensino Fundamental público, excetuando-se as redes privadas.", correct: false },
+                    { letter: "D", text: "Cabe aos hospitais e às secretarias de saúde, sem envolvimento do sistema educacional, estruturar o currículo do aluno em internação prolongada.", correct: false }
+                ],
+                feedback: "A alternativa B é a correta. Segundo o Art. 4º-A, é assegurado atendimento educacional durante a internação para tratamento em regime hospitalar OU domiciliar por tempo prolongado, ao aluno da educação básica. A alternativa A erra ao vedar o regime domiciliar. A alternativa C erra ao restringir ao Ensino Fundamental. A alternativa D não encontra respaldo na LDB."
+            },
+            {
+                id: 10,
+                type: "objetiva",
+                text: "Uma característica marcante das provas da banca FUNECE é exigir a diferenciação entre os 'Princípios' (Art. 3º) e os 'Deveres/Garantias do Estado' (Art. 4º). Qual das alternativas abaixo configura-se como um PRINCÍPIO e NÃO como um dever garantido materialmente no Art. 4º?",
+                options: [
+                    { letter: "A", text: "Oferta de ensino noturno regular, adequado às condições do educando.", correct: false },
+                    { letter: "B", text: "Padrões mínimos de qualidade do ensino, definidos como a variedade e a quantidade mínimas, por aluno, de insumos.", correct: false },
+                    { letter: "C", text: "Respeito à diversidade humana, linguística, cultural e identitária das pessoas surdas, surdo-cegas e com deficiência auditiva.", correct: true },
+                    { letter: "D", text: "Atendimento ao educando por meio de programas suplementares de material didático-escolar e transporte.", correct: false }
+                ],
+                feedback: "A alternativa C é a correta, pois trata-se expressamente de um PRINCÍPIO do ensino inserido no Art. 3º, inciso XIV (incluído em 2021). As alternativas A (Art. 4º, VI), B (Art. 4º, IX) e D (Art. 4º, VIII) são Garantias/Deveres do Estado para a efetivação da educação."
+            }
+        ];
+
+        let answeredCount = 0;
+        let correctCount = 0;
+        let timerInterval;
+        let secondsElapsed = 0;
+        let isTimerRunning = false;
+
+        function formatTime(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const s = (totalSeconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                document.getElementById('timer').textContent = formatTime(secondsElapsed);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('quiz-container');
+            
+            questions.forEach((q, index) => {
+                const qBlock = document.createElement('div');
+                qBlock.className = 'question-card';
+                qBlock.id = `question-block-${q.id}`;
+
+                // Cabeçalho da Questão
+                const header = document.createElement('div');
+                header.className = 'question-header';
+                header.innerHTML = `<h2>Questão ${index + 1}</h2>`;
+                qBlock.appendChild(header);
+
+                // Enunciado
+                const enunciado = document.createElement('div');
+                enunciado.className = 'enunciado';
+                enunciado.innerHTML = q.text;
+                qBlock.appendChild(enunciado);
+
+                // Container das alternativas
+                const optionsContainer = document.createElement('div');
+                optionsContainer.className = 'options-container';
+                optionsContainer.id = `options-${q.id}`;
+
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerHTML = `<span class="option-letter">${opt.letter}</span> <span>${opt.text}</span>`;
+                    
+                    // Lógica de Clique
+                    btn.onclick = () => handleAnswer(q.id, btn, opt.correct);
+                    
+                    if (opt.correct) {
+                        btn.dataset.correct = "true";
+                    }
+
+                    optionsContainer.appendChild(btn);
+                });
+                
+                qBlock.appendChild(optionsContainer);
+
+                // Painel de Feedback (inicialmente oculto)
+                const feedbackPanel = document.createElement('div');
+                feedbackPanel.className = 'feedback-panel';
+                feedbackPanel.id = `feedback-${q.id}`;
+                feedbackPanel.innerHTML = `
+                    <h4>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        Comentário do Professor
+                    </h4>
+                    <p>${q.feedback}</p>
+                `;
+                qBlock.appendChild(feedbackPanel);
+
+                container.appendChild(qBlock);
+            });
+        }
+
+        function handleAnswer(questionId, selectedBtn, isCorrect) {
+            const optionsContainer = document.getElementById(`options-${questionId}`);
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+            
+            // Verifica se a questão já foi respondida
+            if (optionsContainer.classList.contains('answered')) return;
+            optionsContainer.classList.add('answered');
+
+            answeredCount++;
+
+            // Desabilita os botões e aplica as cores
+            buttons.forEach(btn => {
+                btn.classList.add('disabled');
+                
+                if (btn === selectedBtn) {
+                    if (isCorrect) {
+                        btn.classList.add('correct');
+                        correctCount++;
+                    } else {
+                        btn.classList.add('incorrect');
+                    }
+                }
+                
+                // Se o botão for a resposta correta, destaca de verde (mesmo que o usuário tenha errado)
+                if (btn.dataset.correct === "true") {
+                    btn.classList.add('correct');
+                }
+            });
+
+            // Exibe o comentário
+            document.getElementById(`feedback-${questionId}`).style.display = 'block';
+
+            // Atualiza placar
+            document.getElementById('progress').textContent = `${answeredCount} / 10`;
+
+            // Verifica término
+            if (answeredCount === questions.length) {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            stopTimer();
+            setTimeout(() => {
+                document.getElementById('final-score').textContent = `${correctCount}/10`;
+                document.getElementById('final-time').textContent = formatTime(secondsElapsed);
+                document.getElementById('result-modal').style.display = 'flex';
+            }, 1000); // pequeno delay para o usuário ver a última resposta
+        }
+
+        // Inicialização
+        window.onload = () => {
+            renderQuestions();
+            startTimer();
+        };
+    </script>
+</body>
+</html>

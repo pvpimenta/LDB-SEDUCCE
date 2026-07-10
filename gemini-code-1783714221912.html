@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado SEDUC CE - LDB (Ensino Fundamental)</title>
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Azul institucional estilo FUNECE */
+            --secondary: #2563eb;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --success-bg: #dcfce7;
+            --success-border: #16a34a;
+            --success-text: #166534;
+            --error-bg: #fee2e2;
+            --error-border: #dc2626;
+            --error-text: #991b1b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+
+        /* Cabeçalho Fixo */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Container de Questões */
+        main {
+            max-width: 850px;
+            margin: 2.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header h2 {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .question-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: var(--background);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .enunciado {
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+            color: #334155;
+        }
+
+        .itens-romanos {
+            margin: 1rem 0 1rem 2rem;
+            list-style-type: upper-roman;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        /* Alternativas */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.2rem;
+            background-color: var(--surface);
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .option:hover:not(.desabilitada) {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .option-letter {
+            font-weight: bold;
+            background-color: var(--background);
+            color: var(--text-muted);
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1.2rem;
+            border: 2px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        /* Classes Dinâmicas de Estado */
+        .option.correta {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success-border) !important;
+            color: var(--success-text) !important;
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--success-border);
+            color: white;
+            border-color: var(--success-border);
+        }
+
+        .option.incorreta {
+            background-color: var(--error-bg) !important;
+            border-color: var(--error-border) !important;
+            color: var(--error-text) !important;
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--error-border);
+            color: white;
+            border-color: var(--error-border);
+        }
+
+        .desabilitada {
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        /* Feedback do Professor */
+        .feedback {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            background-color: #f0f9ff;
+            border-left: 5px solid #0284c7;
+            border-radius: 0 8px 8px 0;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .feedback h3 {
+            color: #0369a1;
+            font-size: 1.05rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback p {
+            font-size: 0.95rem;
+            color: #0c4a6e;
+            text-align: justify;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Final */
+        #end-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .end-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .end-card h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .end-card p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .score-highlight {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 1.5rem 0;
+            line-height: 1;
+        }
+
+        .btn-restart {
+            margin-top: 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn-restart:hover {
+            background-color: #152c6b;
+        }
+
+        @media(max-width: 640px) {
+            header { flex-direction: column; gap: 1rem; text-align: center; }
+            .status-panel { width: 100%; justify-content: center; }
+            .question-card { padding: 1.5rem 1rem; }
+            .option { padding: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado FUNECE/UECE - SEDUC CE</h1>
+            <p>Tema: LDB - Ensino Fundamental (Arts. 32 a 34)</p>
+        </div>
+        <div class="status-panel">
+            <div class="status-item">
+                <span>Progresso:</span>
+                <span id="progresso">0/10</span>
+            </div>
+            <div class="status-item">
+                <span>Tempo:</span>
+                <span id="cronometro">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- Injeção via JS -->
+    </main>
+
+    <div id="end-screen">
+        <div class="end-card">
+            <h2>Simulado Concluído!</h2>
+            <p>Confira seu desempenho final na prova.</p>
+            <div class="score-highlight" id="final-score">0/10</div>
+            <p>Tempo de resolução: <strong id="final-time">00:00</strong></p>
+            <button class="btn-restart" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                id: 1,
+                enunciado: "De acordo com o Art. 32 da Lei de Diretrizes e Bases da Educação Nacional (LDB), o ensino fundamental obrigatório visa à formação básica do cidadão. Dentre as alternativas a seguir, assinale aquela que NÃO se configura como um dos objetivos estabelecidos para esta etapa da educação básica:",
+                alternativas: [
+                    { texto: "O desenvolvimento da capacidade de aprender, tendo como meios básicos o pleno domínio da leitura, da escrita e do cálculo.", correta: false },
+                    { texto: "O fortalecimento dos vínculos de família, dos laços de solidariedade humana e de tolerância recíproca em que se assenta a vida social.", correta: false },
+                    { texto: "A compreensão do ambiente natural e social, do sistema político, da tecnologia, das artes e dos valores em que se fundamenta a sociedade.", correta: false },
+                    { texto: "O preparo exclusivo para o ingresso no ensino médio técnico profissionalizante, focado no desenvolvimento de competências fabris.", correta: true }
+                ],
+                feedback: "<strong>A alternativa D está incorreta e, portanto, é a resposta (pede-se a exceção).</strong> O Art. 32 da LDB não estabelece, em nenhum de seus incisos, que o Ensino Fundamental tem caráter exclusivo de preparo técnico para o ensino médio profissionalizante ou competências fabris. Os incisos I, II, III e IV consolidam objetivos de formação cidadã, ética e intelectual, não havendo esta restrição mercadológica."
+            },
+            {
+                id: 2,
+                enunciado: "O Ensino Fundamental apresenta diretrizes específicas sobre suas formas de organização e regimes de progressão. Analise as assertivas abaixo (I a IV) com base nos parágrafos do Art. 32 da LDB:<br><ul class='itens-romanos'><li>I. É facultado aos sistemas de ensino desdobrar o ensino fundamental em ciclos.</li><li>II. Fica estritamente vedada a adoção do regime de progressão continuada nos estabelecimentos que utilizam progressão regular por série.</li><li>III. O ensino fundamental regular será ministrado exclusivamente em língua portuguesa, sendo vedado o uso de línguas maternas por comunidades indígenas nas escolas regulares.</li><li>IV. O ensino fundamental será presencial, sendo o ensino a distância utilizado apenas como complementação da aprendizagem ou em situações emergenciais.</li></ul>Estão corretas as assertivas:",
+                alternativas: [
+                    { texto: "I e IV, apenas.", correta: true },
+                    { texto: "II e III, apenas.", correta: false },
+                    { texto: "I, II e IV, apenas.", correta: false },
+                    { texto: "I, III e IV, apenas.", correta: false }
+                ],
+                feedback: "<strong>Alternativa A correta.</strong> A assertiva II é falsa porque o § 2º do Art. 32 <em>permite</em> a adoção do regime de progressão continuada. A assertiva III é falsa porque o § 3º do Art. 32 assegura às comunidades indígenas a utilização de suas línguas maternas e processos próprios de aprendizagem. Logo, apenas I (§ 1º) e IV (§ 4º) estão corretas."
+            },
+            {
+                id: 3,
+                enunciado: "No que concerne ao currículo do Ensino Fundamental e aos temas nele integrados, a LDB sofreu diversas alterações ao longo dos anos para adequar as exigências sociais à escolarização. Sobre esse aspecto, assinale a opção que reflete corretamente o regramento imposto pela Lei de Diretrizes e Bases da Educação Nacional:",
+                alternativas: [
+                    { texto: "O estudo sobre os símbolos nacionais deverá constituir uma disciplina independente e obrigatória a partir do sexto ano do ensino fundamental.", correta: false },
+                    { texto: "O conteúdo que trate dos direitos das crianças e dos adolescentes deverá ser abordado como disciplina eletiva, não possuindo obrigatoriedade legal.", correta: false },
+                    { texto: "O currículo incluirá, obrigatoriamente, conteúdo que trate dos direitos das crianças e dos adolescentes, tendo como diretriz o ECA (Lei nº 8.069/90).", correta: true },
+                    { texto: "A LDB determina que o estudo dos símbolos nacionais seja promovido em caráter opcional pelas escolas de caráter privado, mas obrigatório na rede pública.", correta: false }
+                ],
+                feedback: "<strong>Alternativa C é correta.</strong> Conforme expressa determinação do § 5º do Art. 32, o currículo incluirá obrigatoriamente conteúdos referentes ao ECA. O estudo dos símbolos nacionais (§ 6º) é incluído como <em>tema transversal</em>, e não como disciplina independente (o que invalida a letra A). A letra D é falsa pois a regra é para todo o Ensino Fundamental."
+            },
+            {
+                id: 4,
+                enunciado: "A banca FUNECE frequentemente cobra minúcias legais. Considere o Art. 33 da LDB, que trata do Ensino Religioso. Avalie o trecho a seguir: <em>'O ensino religioso, de matrícula ____________, é parte integrante da formação básica do cidadão e constitui disciplina dos horários normais das escolas ____________ de ensino fundamental, assegurado o respeito à diversidade cultural religiosa do Brasil, vedadas quaisquer formas de proselitismo.'</em><br><br>As lacunas devem ser preenchidas, correta e respectivamente, por:",
+                alternativas: [
+                    { texto: "obrigatória / públicas e privadas", correta: false },
+                    { texto: "facultativa / públicas", correta: true },
+                    { texto: "facultativa / públicas e privadas", correta: false },
+                    { texto: "condicionada / públicas", correta: false }
+                ],
+                feedback: "<strong>Alternativa B é a correta.</strong> O texto espelha <em>ipsis litteris</em> o caput do Art. 33. O ensino religioso possui matrícula facultativa para o aluno, porém é de oferta obrigatória (disciplina dos horários normais) apenas para as escolas <strong>públicas</strong> de ensino fundamental."
+            },
+            {
+                id: 5,
+                enunciado: "O Ensino Religioso na rede pública requer regulamentação específica. A respeito da definição dos conteúdos desta disciplina, o § 2º do Art. 33 da LDB estabelece uma regra procedimental importante imposta aos sistemas de ensino. Assinale a opção que a descreve corretamente:",
+                alternativas: [
+                    { texto: "Os sistemas de ensino ouvirão exclusivamente a Igreja Católica e o Conselho Nacional de Igrejas Cristãs para a definição dos referidos conteúdos.", correta: false },
+                    { texto: "Caberá, de forma autônoma e exclusiva, ao Ministro da Educação, mediante portaria ministerial, a definição dos currículos de ensino religioso em todo o território nacional.", correta: false },
+                    { texto: "Os sistemas de ensino ouvirão entidade civil, constituída pelas diferentes denominações religiosas, para a definição dos conteúdos do ensino religioso.", correta: true },
+                    { texto: "A elaboração dos currículos se dará por votação direta entre os pais e alunos das respectivas unidades escolares no início de cada ano letivo.", correta: false }
+                ],
+                feedback: "<strong>Alternativa C é a correta.</strong> É exatamente a redação do Art. 33, § 2º: <em>'Os sistemas de ensino ouvirão entidade civil, constituída pelas diferentes denominações religiosas, para a definição dos conteúdos do ensino religioso'</em>. As demais opções são criações distrativas e incorretas sob a ótica legal."
+            },
+            {
+                id: 6,
+                enunciado: "A LDB regulamenta a carga horária mínima necessária para garantir a efetividade do ensino na educação básica. No que tange especificamente à jornada escolar no ensino fundamental (Art. 34), julgue a veracidade normativa da seguinte premissa: <em>A jornada escolar no ensino fundamental deve ser sempre e invariavelmente de, no mínimo, seis horas diárias de trabalho efetivo, não admitindo exceções.</em> Sobre esta premissa, é correto afirmar que é:",
+                alternativas: [
+                    { texto: "Verdadeira, pois a LDB extinguiu jornadas inferiores a seis horas com a vigência do Plano Nacional de Educação.", correta: false },
+                    { texto: "Falsa, visto que a jornada escolar incluirá pelo menos quatro horas de trabalho efetivo em sala de aula, admitindo-se, como ressalva legal, os casos do ensino noturno.", correta: true },
+                    { texto: "Verdadeira, aplicando-se apenas às escolas localizadas em áreas urbanas, onde a infraestrutura comporta a referida exigência legal.", correta: false },
+                    { texto: "Falsa, pois a jornada mínima obrigatória no Ensino Fundamental é de três horas, independentemente do turno (diurno ou noturno).", correta: false }
+                ],
+                feedback: "<strong>Alternativa B correta.</strong> O Art. 34 caput exige <em>pelo menos quatro horas</em> de trabalho efetivo, sendo esse período progressivamente ampliado. Além disso, o § 1º ressalva os casos do ensino noturno e formas alternativas de organização. Logo, não é de 6h a regra inicial, e a afirmação inicial do enunciado é categoricamente falsa."
+            },
+            {
+                id: 7,
+                enunciado: "Analise os itens subsequentes acerca do Ensino Fundamental na LDB, avaliando sua aderência legal:<br><ul class='itens-romanos'><li>I. A expansão progressiva da permanência na escola buscará estabelecer o ensino fundamental em tempo integral, a critério dos sistemas de ensino.</li><li>II. A admissão de professores para o ensino religioso nas escolas públicas independe de normas dos sistemas de ensino, bastando indicação da entidade religiosa matriz.</li><li>III. O ensino fundamental tem, por lei federal, a duração compulsória de 9 (nove) anos, iniciando-se aos 6 (seis) anos de idade.</li><li>IV. A educação a distância (EaD) é a modalidade prioritária do ensino fundamental regular após a reforma normativa do ano de 2022.</li></ul>A quantidade de itens <strong>INCORRETOS</strong> é igual a:",
+                alternativas: [
+                    { texto: "Nenhum.", correta: false },
+                    { texto: "Um.", correta: false },
+                    { texto: "Dois.", correta: true },
+                    { texto: "Três.", correta: false }
+                ],
+                feedback: "<strong>Alternativa C (Dois itens incorretos).</strong> O item I é Correto (Art. 34, §2º). O item II é <strong>Incorreto</strong> (Art. 33, §1º: os sistemas de ensino estabelecerão as normas para habilitação e admissão). O item III é Correto (Art. 32 caput). O item IV é <strong>Incorreto</strong> (Art. 32, § 4º: o ensino fundamental será presencial, sendo EaD exceção complementar ou emergencial). Logo, 2 itens estão errados."
+            },
+            {
+                id: 8,
+                enunciado: "É imperativo que os gestores educacionais compreendam os limites da autonomia das escolas na organização de seus ciclos, séries e regimes. Diante do que prevê o Art. 32 sobre a progressão de estudos no Ensino Fundamental, identifique a afirmativa legalmente exata:",
+                alternativas: [
+                    { texto: "Ao adotar a progressão continuada, a escola fica dispensada de realizar processos avaliativos formais de ensino-aprendizagem até o final do ciclo de nove anos.", correta: false },
+                    { texto: "A implementação de ciclos no ensino fundamental é uma obrigação estrita de todos os sistemas estaduais e municipais de educação.", correta: false },
+                    { texto: "Os estabelecimentos que utilizam progressão regular por série podem adotar o regime de progressão continuada, mas devem resguardar a avaliação do processo de ensino-aprendizagem.", correta: true },
+                    { texto: "O desdobramento do ensino fundamental em ciclos somente pode ocorrer mediante autorização direta e específica do Conselho Nacional de Educação (CNE) e do Presidente da República.", correta: false }
+                ],
+                feedback: "<strong>Alternativa C é a correta.</strong> O §2º do Art. 32 estabelece explicitamente que o regime de progressão continuada pode ser adotado 'sem prejuízo da avaliação do processo de ensino-aprendizagem'. O §1º afirma que o uso de ciclos é facultado, ou seja, não é obrigatório e não depende de autorização do Presidente (invalidando B e D)."
+            },
+            {
+                id: 9,
+                enunciado: "Em determinada escola pública da rede cearense (jurisdição que observa rigidamente a LDB e resoluções do CEE), a matrícula para o Ensino Religioso no Ensino Fundamental gerou controvérsias. Um diretor exigiu a matrícula obrigatória de todos os alunos, baseando-se no fato de ser disciplina regular. À luz do Art. 33 da LDB, o ato do diretor foi:",
+                alternativas: [
+                    { texto: "Legal e amparado, pois sendo disciplina dos horários normais, todos os alunos, sem exceção, devem ser matriculados para fins de cômputo da carga horária de 800 horas anuais.", correta: false },
+                    { texto: "Ilegal, visto que a LDB assevera ser o ensino religioso, embora de oferta obrigatória no horário normal da escola pública, uma disciplina de matrícula estritamente facultativa para o aluno.", correta: true },
+                    { texto: "Legal, contanto que o diretor garanta que não haverá proselitismo religioso em sala de aula, condição <i>sine qua non</i> para a imposição da disciplina a toda a comunidade escolar.", correta: false },
+                    { texto: "Ilegal, uma vez que o ensino religioso não constitui disciplina dos horários normais e só pode ser ofertado no contraturno escolar (jornada estendida).", correta: false }
+                ],
+                feedback: "<strong>Alternativa B é a correta.</strong> Este é um peguinha clássico de concursos da banca FUNECE. A oferta pelo Estado (escola) é OBRIGATÓRIA (ela deve estar na grade normal). Porém, o ingresso nela (matrícula do discente) é FACULTATIVA. Forçar a matrícula constitui violação ao caput do Art. 33."
+            },
+            {
+                id: 10,
+                enunciado: "Para assegurar a formação basilar da cidadania, o Art. 32, caput, da LDB estrutura quatro incisos fundamentais. Assinale a única alternativa que reflete integralmente a correta correlação textual com um desses incisos.",
+                alternativas: [
+                    { texto: "A mitigação dos laços familiares em prol do fortalecimento estrito do Estado nacional, em que se assenta a vida cívica e paramilitar.", correta: false },
+                    { texto: "O desenvolvimento da capacidade de aprendizagem tem em vista exclusivamente o preenchimento de cotas de produção no mercado laboral vigente.", correta: false },
+                    { texto: "O pleno domínio da leitura, da escrita e do cálculo figura como finalidade exclusiva do ensino médio e não como meio básico de aprendizagem do ensino fundamental.", correta: false },
+                    { texto: "A compreensão do ambiente natural e social, do sistema político, da tecnologia, das artes e dos valores em que se fundamenta a sociedade constitui um dos objetivos prementes do ensino fundamental.", correta: true }
+                ],
+                feedback: "<strong>Alternativa D é correta.</strong> A alternativa D copia literalmente o inciso II do Art. 32. As demais opções distorcem gravemente a lei, como 'mitigar os laços familiares' (quando a LDB propõe fortalecer - inciso IV), focar no 'labor fabril' (o foco é a aquisição de valores e conhecimentos - inciso III), ou relegar leitura/cálculo ao Ensino Médio (são os meios básicos do Ensino Fundamental - inciso I)."
+            }
+        ];
+
+        let answeredQuestions = 0;
+        let acertos = 0;
+        let tempoSegundos = 0;
+        let timerInterval;
+
+        function formatarTempo(segundos) {
+            const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const seg = (segundos % 60).toString().padStart(2, '0');
+            return `${min}:${seg}`;
+        }
+
+        function iniciarCronometro() {
+            timerInterval = setInterval(() => {
+                tempoSegundos++;
+                document.getElementById('cronometro').innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function pararCronometro() {
+            clearInterval(timerInterval);
+        }
+
+        function renderizarQuestoes() {
+            const container = document.getElementById('quiz-container');
+            const letras = ['A', 'B', 'C', 'D'];
+
+            questoes.forEach((q, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card';
+                qCard.id = `questao-${index}`;
+
+                let htmlContent = `
+                    <div class="question-header">
+                        <h2>Questão ${index + 1}</h2>
+                        <span class="question-meta">Nível: Médio-Difícil</span>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-container" id="options-${index}">
+                `;
+
+                q.alternativas.forEach((alt, i) => {
+                    htmlContent += `
+                        <div class="option" onclick="registrarResposta(${index}, ${i}, ${alt.correta})">
+                            <div class="option-letter">${letras[i]}</div>
+                            <div class="option-text">${alt.texto}</div>
+                        </div>
+                    `;
+                });
+
+                htmlContent += `
+                    </div>
+                    <div class="feedback" id="feedback-${index}">
+                        <h3>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Comentário do Professor (Padrão FUNECE)
+                        </h3>
+                        <p>${q.feedback}</p>
+                    </div>
+                `;
+
+                qCard.innerHTML = htmlContent;
+                container.appendChild(qCard);
+            });
+        }
+
+        function registrarResposta(questaoIndex, altIndex, isCorreta) {
+            const optionsContainer = document.getElementById(`options-${questaoIndex}`);
+            
+            if (optionsContainer.classList.contains('respondida')) return;
+            optionsContainer.classList.add('respondida');
+
+            const alternativasDivs = optionsContainer.querySelectorAll('.option');
+
+            alternativasDivs.forEach((alt, idx) => {
+                alt.classList.add('desabilitada');
+                
+                if (idx === altIndex) { 
+                    if (isCorreta) {
+                        alt.classList.add('correta');
+                        acertos++;
+                    } else {
+                        alt.classList.add('incorreta');
+                    }
+                }
+
+                if (questoes[questaoIndex].alternativas[idx].correta) {
+                    alt.classList.add('correta');
+                }
+            });
+
+            document.getElementById(`feedback-${questaoIndex}`).style.display = 'block';
+
+            answeredQuestions++;
+            document.getElementById('progresso').innerText = `${answeredQuestions}/10`;
+
+            if (answeredQuestions === 10) {
+                finalizarProva();
+            }
+        }
+
+        function finalizarProva() {
+            pararCronometro();
+            
+            setTimeout(() => {
+                document.getElementById('final-score').innerText = `${acertos}/10`;
+                document.getElementById('final-time').innerText = formatarTempo(tempoSegundos);
+                document.getElementById('end-screen').style.display = 'flex';
+            }, 800);
+        }
+
+        window.onload = () => {
+            renderizarQuestoes();
+            iniciarCronometro();
+        };
+    </script>
+</body>
+</html>

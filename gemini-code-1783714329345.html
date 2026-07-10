@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado SEDUC CE - LDB (Ensino Médio - Atualizado)</title>
+    <style>
+        :root {
+            --primary: #0a3d6b; /* Azul FUNECE/UECE */
+            --secondary: #1a6ab3;
+            --background: #f4f7f6;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success-bg: #d1fae5;
+            --success-border: #10b981;
+            --success-text: #065f46;
+            --error-bg: #fee2e2;
+            --error-border: #ef4444;
+            --error-text: #991b1b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+
+        /* Cabeçalho */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.2rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-title h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .header-title p {
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            margin-top: 0.3rem;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 2rem;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Container Principal */
+        main {
+            max-width: 900px;
+            margin: 2.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header h2 {
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+
+        .question-meta {
+            font-size: 0.85rem;
+            color: white;
+            background: var(--secondary);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .enunciado {
+            font-size: 1.1rem;
+            margin-bottom: 1.8rem;
+            text-align: justify;
+            color: #334155;
+            line-height: 1.7;
+        }
+
+        .itens-romanos {
+            margin: 1.2rem 0 1.2rem 2.5rem;
+            list-style-type: upper-roman;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 0.8rem;
+            padding-left: 0.5rem;
+        }
+
+        /* Alternativas */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 1.2rem;
+            background-color: var(--surface);
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.05rem;
+            color: #1e293b;
+            position: relative;
+        }
+
+        .option:hover:not(.desabilitada) {
+            background-color: #f8fafc;
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .option-letter {
+            font-weight: 800;
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            min-width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1.5rem;
+            border: 2px solid #cbd5e1;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        /* Classes de Interatividade (Estados) */
+        .option.correta {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success-border) !important;
+            color: var(--success-text) !important;
+            font-weight: 600;
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--success-border) !important;
+            color: white !important;
+            border-color: var(--success-border) !important;
+        }
+
+        .option.incorreta {
+            background-color: var(--error-bg) !important;
+            border-color: var(--error-border) !important;
+            color: var(--error-text) !important;
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--error-border) !important;
+            color: white !important;
+            border-color: var(--error-border) !important;
+        }
+
+        .desabilitada {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* Feedback do Professor */
+        .feedback {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f0f9ff;
+            border-left: 6px solid #0284c7;
+            border-radius: 0 8px 8px 0;
+            animation: fadeInDown 0.4s ease-out;
+        }
+
+        .feedback h3 {
+            color: #0369a1;
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback p {
+            font-size: 1rem;
+            color: #0c4a6e;
+            text-align: justify;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tela Final */
+        #end-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .end-card {
+            background: white;
+            padding: 3.5rem 2.5rem;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .end-card h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .end-card p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .score-highlight {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 1.5rem 0;
+            line-height: 1;
+        }
+
+        .btn-restart {
+            margin-top: 2rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1.2rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn-restart:hover {
+            background-color: #072a4a;
+        }
+
+        @media(max-width: 768px) {
+            header { flex-direction: column; gap: 1rem; text-align: center; }
+            .status-panel { width: 100%; justify-content: center; }
+            .question-card { padding: 1.5rem; }
+            .option { padding: 1rem; }
+            .option-letter { margin-right: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado FUNECE - SEDUC CE</h1>
+            <p>Tema: LDB - Novo Ensino Médio (Arts. 35 a 36) - Lei nº 14.945/2024</p>
+        </div>
+        <div class="status-panel">
+            <div class="status-item">
+                <span>Progresso:</span>
+                <span id="progresso">0/10</span>
+            </div>
+            <div class="status-item">
+                <span>Tempo:</span>
+                <span id="cronometro">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- O JS injetará as questões aqui -->
+    </main>
+
+    <div id="end-screen">
+        <div class="end-card">
+            <h2>Simulado Concluído!</h2>
+            <p>Seu desempenho na etapa de conhecimentos pedagógicos e legislação:</p>
+            <div class="score-highlight" id="final-score">0/10</div>
+            <p>Tempo de prova: <strong id="final-time">00:00</strong></p>
+            <button class="btn-restart" onclick="location.reload()">Realizar Novo Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                id: 1,
+                enunciado: "O Art. 35 da LDB estipula as finalidades do Ensino Médio, etapa final da educação básica, cuja duração mínima é de três anos. Considerando o referencial legal em vigor, assinale a alternativa que NÃO constitui uma de suas finalidades expressas:",
+                alternativas: [
+                    { texto: "A compreensão dos fundamentos científico-tecnológicos dos processos produtivos, relacionando a teoria com a prática, no ensino de cada disciplina.", correta: false },
+                    { texto: "O aprimoramento do educando como pessoa humana, incluindo a formação ética e o desenvolvimento da autonomia intelectual e do pensamento crítico.", correta: false },
+                    { texto: "A preparação básica para o trabalho e a cidadania do educando, para continuar aprendendo, de modo a ser capaz de se adaptar com flexibilidade a novas condições de ocupação.", correta: false },
+                    { texto: "A terminalidade precoce dos estudos para educandos com altas habilidades, com foco exclusivo no rápido ingresso ao mercado de trabalho técnico-industrial.", correta: true }
+                ],
+                feedback: "<strong>A alternativa D é a correta (pede-se a exceção).</strong> O Art. 35 da LDB não prevê a \"terminalidade precoce com foco exclusivo no mercado de trabalho\" como finalidade do Ensino Médio. Suas finalidades (incisos I a IV) são pautadas na consolidação de conhecimentos, preparação básica (não restrita ou exclusiva) para o trabalho e cidadania, aprimoramento humano e compreensão científico-tecnológica."
+            },
+            {
+                id: 2,
+                enunciado: "À luz da Lei nº 14.945/2024, que reconfigura diretrizes do Ensino Médio, analise as proposições acerca da estrutura curricular (Art. 35-B):<br><ul class='itens-romanos'><li>I. O currículo será composto, invariavelmente, apenas pela Base Nacional Comum Curricular (BNCC), abolindo-se as nomenclaturas de itinerários formativos.</li><li>II. Os estabelecimentos estruturarão suas propostas pedagógicas promovendo metodologias investigativas no processo de ensino e aprendizagem.</li><li>III. Serão asseguradas aos estudantes oportunidades de construção de projetos de vida, em perspectiva orientada pelo desenvolvimento integral.</li><li>IV. A conexão dos processos de ensino e aprendizagem deverá ignorar a vida comunitária, focando exclusivamente no rigor científico universal imposto pelas diretrizes nacionais.</li></ul>Estão corretas apenas as afirmativas:",
+                alternativas: [
+                    { texto: "I e II.", correta: false },
+                    { texto: "II e III.", correta: true },
+                    { texto: "III e IV.", correta: false },
+                    { texto: "I, II e IV.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B é a correta.</strong> A afirmativa I é falsa (o currículo é composto de formação geral básica E itinerários formativos, Art. 35-B, caput). A afirmativa IV é falsa (a LDB exige a CONEXÃO com a vida comunitária e social, Art. 35-B, §1º, II). Logo, apenas II (Art. 35-B, §1º, I) e III (Art. 35-B, §2º) estão corretas."
+            },
+            {
+                id: 3,
+                enunciado: "Sobre a modalidade de oferta do Ensino Médio, as recentes alterações da LDB (Art. 35-B, § 3º) foram muito claras quanto à adoção de tecnologias. Dessa forma, é correto afirmar que o ensino médio:",
+                alternativas: [
+                    { texto: "Será ofertado de forma presencial, admitido, excepcionalmente, ensino mediado por tecnologia, na forma de regulamento elaborado com a participação dos sistemas estaduais e distrital de ensino.", correta: true },
+                    { texto: "Será ministrado preferencialmente na modalidade a distância (EaD) para as escolas de zonas rurais e de difícil acesso, reservando-se a modalidade presencial aos centros urbanos.", correta: false },
+                    { texto: "Fica rigorosamente proibido de utilizar o ensino mediado por tecnologia para cômputo da carga horária obrigatória, independentemente de regulamento estadual.", correta: false },
+                    { texto: "Será ofertado no formato híbrido obrigatório (50% presencial e 50% mediado por tecnologia) para todos os itinerários formativos do território nacional.", correta: false }
+                ],
+                feedback: "<strong>A alternativa A é a correta.</strong> O texto da alternativa A é a literalidade do Art. 35-B, §3º da LDB. A regra geral do Ensino Médio é a oferta presencial, sendo a mediação tecnológica tratada como caráter excepcional e condicionada a regulamento específico."
+            },
+            {
+                id: 4,
+                enunciado: "As alterações trazidas pela Lei nº 14.945/2024 estabeleceram novas bases para a carga horária da Formação Geral Básica (FGB) no Ensino Médio. Em regra, e resguardada a sua exceção legal, a LDB estipula no Art. 35-C que a FGB terá carga horária mínima total de:",
+                alternativas: [
+                    { texto: "3.000 horas, reduzindo-se para 2.400 horas no caso da formação técnica e profissional.", correta: false },
+                    { texto: "1.800 horas para o ensino regular diurno e 1.200 horas para o ensino médio na modalidade EJA.", correta: false },
+                    { texto: "2.400 horas, admitindo-se que, no caso de formação técnica e profissional, a carga horária mínima da FGB seja de 2.100 horas.", correta: true },
+                    { texto: "2.100 horas para todos os itinerários formativos, não existindo distinções horárias na formação geral básica.", correta: false }
+                ],
+                feedback: "<strong>A alternativa C é a correta.</strong> Nos termos do Art. 35-C (caput e parágrafo único), a Formação Geral Básica tem carga mínima total de 2.400 horas. A exceção ocorre no caso da formação técnica e profissional (inciso V do Art. 36), onde a FGB poderá ter 2.100 horas (admitindo-se ainda até 300h destinadas a aprofundamento da BNCC relacionado à formação técnica)."
+            },
+            {
+                id: 5,
+                enunciado: "De acordo com o Art. 35-D da LDB, a Base Nacional Comum Curricular (BNCC) do Ensino Médio estabelece áreas do conhecimento. Acerca da inclusão de idiomas estrangeiros na área de 'linguagens e suas tecnologias' e nos currículos, assinale a opção que reflete o rigor da norma federal:",
+                alternativas: [
+                    { texto: "A área de linguagens integra a língua portuguesa, língua inglesa, língua espanhola (de forma obrigatória) e artes, dispensando-se a educação física.", correta: false },
+                    { texto: "A língua inglesa é componente integrado obrigatório da área de linguagens; além disso, os currículos poderão ofertar outras línguas estrangeiras, preferencialmente o espanhol.", correta: true },
+                    { texto: "Apenas a língua portuguesa é obrigatória, ficando a escolha da língua estrangeira moderna a cargo exclusivo de cada conselho escolar, sem preferências legais impostas.", correta: false },
+                    { texto: "As comunidades indígenas são obrigadas a adotar a língua inglesa como língua materna subsidiária ao português, sendo vedado o uso de suas próprias línguas nos currículos regulares.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B é a correta.</strong> Conforme o Art. 35-D, I, a área de linguagens é integrada por língua portuguesa (e literaturas), língua inglesa, artes e educação física. O §3º complementa afirmando que os currículos <em>poderão</em> ofertar outras línguas, <em>preferencialmente o espanhol</em>. A letra D ofende o §2º (que assegura às comunidades indígenas suas línguas maternas)."
+            },
+            {
+                id: 6,
+                enunciado: "A organização das áreas de conhecimento na BNCC do Ensino Médio (Art. 35-D) possui contornos precisos. Julgue os itens a seguir e assinale a correspondência correta:<br><ul class='itens-romanos'><li>I. Ciências da natureza e suas tecnologias é integrada apenas por biologia e física.</li><li>II. Ciências humanas e sociais aplicadas é integrada por filosofia, geografia, história e sociologia.</li><li>III. A Matemática e suas tecnologias constitui uma área de conhecimento própria e independente das ciências da natureza.</li></ul>Estão corretos:",
+                alternativas: [
+                    { texto: "I e II, apenas.", correta: false },
+                    { texto: "I e III, apenas.", correta: false },
+                    { texto: "II e III, apenas.", correta: true },
+                    { texto: "I, II e III.", correta: false }
+                ],
+                feedback: "<strong>A alternativa C é a correta.</strong> O item I está falso porque a área de Ciências da Natureza é integrada por biologia, física E QUÍMICA (Art. 35-D, III). O item II está correto, reproduzindo o inciso IV. O item III está correto, pois a Matemática possui sua própria área de conhecimento (inciso II)."
+            },
+            {
+                id: 7,
+                enunciado: "Uma das maiores preocupações dos sistemas de ensino é a garantia de oferta de itinerários formativos para evitar prejuízos à diversidade de escolha do aluno. Conforme o Art. 36, § 2º-A da LDB, os sistemas de ensino deverão garantir que todas as escolas de ensino médio ofertem:",
+                alternativas: [
+                    { texto: "O aprofundamento integral de todas as áreas do conhecimento, organizadas em, no mínimo, 4 (quatro) itinerários formativos, independentemente da modalidade ofertada.", correta: false },
+                    { texto: "O aprofundamento integral de todas as áreas do conhecimento, organizadas em, no mínimo, 2 (dois) itinerários formativos com ênfases distintas, excetuadas as que oferecerem a formação técnica e profissional.", correta: true },
+                    { texto: "Apenas 1 (um) itinerário formativo focado em ciências exatas, visto ser a prioridade da estratégia nacional de desenvolvimento tecnológico.", correta: false },
+                    { texto: "Itinerários de livre escolha, sem fixação de um número mínimo por escola, cabendo a decisão orçamentária exclusivamente aos diretores escolares.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B é a correta.</strong> O texto reproduz fielmente a exigência legal do §2º-A do Art. 36: é necessário garantir, no mínimo, 2 itinerários com ênfases distintas nas escolas, abrindo-se exceção para aquelas instituições que oferecem a formação técnica e profissional."
+            },
+            {
+                id: 8,
+                enunciado: "O inciso V do Art. 36 da LDB aborda a formação técnica e profissional. Quando os sistemas de ensino promoverem a oferta de formações experimentais relacionadas a essa área que não constem do Catálogo Nacional dos Cursos Técnicos (CNCT), a legislação estabelece prazos para seu reconhecimento. A continuidade desta oferta dependerá de:",
+                alternativas: [
+                    { texto: "Reconhecimento pelo Ministério da Educação no prazo de 1 ano, e inserção no CNCT no prazo de 2 anos.", correta: false },
+                    { texto: "Reconhecimento pelo respectivo Conselho Estadual de Educação no prazo de 5 anos, sendo dispensada a sua inserção no CNCT.", correta: false },
+                    { texto: "Reconhecimento pelo respectivo Conselho Estadual de Educação, no prazo de 3 anos, e da inserção no CNCT, no prazo de 5 anos, contados da oferta inicial.", correta: true },
+                    { texto: "Validação pelas secretarias municipais de educação imediatamente antes da abertura das turmas, vedada a inserção no CNCT de cursos experimentais.", correta: false }
+                ],
+                feedback: "<strong>A alternativa C é a correta.</strong> A regra está expressa no Art. 36, §7º da LDB. A formação experimental exige dois passos para sua continuidade: 1) Reconhecimento pelo CEE em até 3 anos; 2) Inserção no Catálogo Nacional (CNCT) em até 5 anos."
+            },
+            {
+                id: 9,
+                enunciado: "Uma comunidade do interior do Ceará identificou alta evasão de jovens que trabalham no comércio durante o dia e não encontram escolas de ensino médio à noite. Sobre o dever do poder público para com o ensino noturno, a Lei nº 14.945/2024 introduziu expressamente no Art. 36, §8º-A, que os Estados manterão:",
+                alternativas: [
+                    { texto: "Pelo menos 1 (uma) escola de sua rede pública com oferta de ensino médio regular no turno noturno na sede de cada um de seus Municípios, quando houver demanda manifesta e comprovada.", correta: true },
+                    { texto: "Vagas noturnas exclusivamente na capital e nas regiões metropolitanas, desobrigando o Estado de ofertar o ensino noturno em municípios do interior.", correta: false },
+                    { texto: "Pelo menos 50% de todas as suas escolas com funcionamento obrigatório em três turnos (manhã, tarde e noite) em todos os municípios.", correta: false },
+                    { texto: "A oferta noturna apenas sob a modalidade de Educação de Jovens e Adultos (EJA), extinguindo-se, legalmente, o Ensino Médio Regular noturno.", correta: false }
+                ],
+                feedback: "<strong>A alternativa A é a correta.</strong> É a transcrição do dispositivo recém-incluído (Art. 36, §8º-A): o Estado deve manter na sede de CADA MUNICÍPIO pelo menos uma escola pública com ensino médio regular no turno noturno, desde que haja demanda manifesta e comprovada."
+            },
+            {
+                id: 10,
+                enunciado: "Para assegurar a viabilidade do Ensino Médio em regime de tempo integral e cumprir as exigências curriculares, o Art. 35-B, § 4º, faculta aos sistemas de ensino o reconhecimento de aprendizagens, competências e habilidades em experiências extraescolares. Dentre as opções a seguir, assinale aquela que NÃO é citada pela referida lei como forma válida desse reconhecimento:",
+                alternativas: [
+                    { texto: "A experiência de estágio e de programas de aprendizagem profissional.", correta: false },
+                    { texto: "A conclusão de cursos de qualificação profissional, desde que comprovada por certificação de acordo com a legislação.", correta: false },
+                    { texto: "A participação comprovada em atividades de cunho estritamente religioso que substituam a carga horária de ciências humanas.", correta: true },
+                    { texto: "A participação comprovada em projetos de extensão universitária ou de iniciação científica ou em atividades de direção em grêmios estudantis.", correta: false }
+                ],
+                feedback: "<strong>A alternativa C é a correta (pede-se o que NÃO é citado na lei).</strong> O Art. 35-B, §4º, elenca nos incisos I, II e III os tipos de experiências extraescolares reconhecíveis (estágios, trabalho remunerado ou voluntário, qualificação profissional, extensão universitária, iniciação científica e direção de grêmios). Não há previsão legal para substituição de carga horária por atividades estritamente religiosas nas áreas do conhecimento."
+            }
+        ];
+
+        let answeredQuestions = 0;
+        let acertos = 0;
+        let tempoSegundos = 0;
+        let timerInterval;
+
+        function formatarTempo(segundos) {
+            const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const seg = (segundos % 60).toString().padStart(2, '0');
+            return `${min}:${seg}`;
+        }
+
+        function iniciarCronometro() {
+            timerInterval = setInterval(() => {
+                tempoSegundos++;
+                document.getElementById('cronometro').innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function pararCronometro() {
+            clearInterval(timerInterval);
+        }
+
+        function renderizarQuestoes() {
+            const container = document.getElementById('quiz-container');
+            const letras = ['A', 'B', 'C', 'D'];
+
+            questoes.forEach((q, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card';
+                qCard.id = `questao-${index}`;
+
+                let htmlContent = `
+                    <div class="question-header">
+                        <h2>Questão ${index + 1} de 10</h2>
+                        <span class="question-meta">Nível: Médio-Difícil</span>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-container" id="options-${index}">
+                `;
+
+                q.alternativas.forEach((alt, i) => {
+                    htmlContent += `
+                        <div class="option" onclick="registrarResposta(${index}, ${i}, ${alt.correta})">
+                            <div class="option-letter">${letras[i]}</div>
+                            <div class="option-text">${alt.texto}</div>
+                        </div>
+                    `;
+                });
+
+                htmlContent += `
+                    </div>
+                    <div class="feedback" id="feedback-${index}">
+                        <h3>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            Comentário do Professor (Padrão FUNECE)
+                        </h3>
+                        <p>${q.feedback}</p>
+                    </div>
+                `;
+
+                qCard.innerHTML = htmlContent;
+                container.appendChild(qCard);
+            });
+        }
+
+        function registrarResposta(questaoIndex, altIndex, isCorreta) {
+            const optionsContainer = document.getElementById(`options-${questaoIndex}`);
+            
+            // Impede duplo clique na mesma questão
+            if (optionsContainer.classList.contains('respondida')) return;
+            optionsContainer.classList.add('respondida');
+
+            const alternativasDivs = optionsContainer.querySelectorAll('.option');
+
+            alternativasDivs.forEach((alt, idx) => {
+                // Desabilita todas as opções para travar a questão
+                alt.classList.add('desabilitada');
+                
+                // Trata a alternativa clicada pelo usuário
+                if (idx === altIndex) { 
+                    if (isCorreta) {
+                        alt.classList.add('correta');
+                        acertos++;
+                    } else {
+                        alt.classList.add('incorreta');
+                    }
+                }
+
+                // Sempre destaca a correta real, caso o usuário tenha errado
+                if (questoes[questaoIndex].alternativas[idx].correta) {
+                    alt.classList.add('correta');
+                }
+            });
+
+            // Exibe o comentário do professor
+            document.getElementById(`feedback-${questaoIndex}`).style.display = 'block';
+
+            // Atualiza progresso
+            answeredQuestions++;
+            document.getElementById('progresso').innerText = `${answeredQuestions}/10`;
+
+            // Verifica se o simulado acabou
+            if (answeredQuestions === 10) {
+                finalizarProva();
+            }
+        }
+
+        function finalizarProva() {
+            pararCronometro();
+            
+            setTimeout(() => {
+                document.getElementById('final-score').innerText = `${acertos}/10`;
+                document.getElementById('final-time').innerText = formatarTempo(tempoSegundos);
+                document.getElementById('end-screen').style.display = 'flex';
+            }, 1000); // Aguarda 1 seg para o usuário ver a última resposta antes da tela final
+        }
+
+        // Inicialização
+        window.onload = () => {
+            renderizarQuestoes();
+            iniciarCronometro();
+        };
+    </script>
+</body>
+</html>

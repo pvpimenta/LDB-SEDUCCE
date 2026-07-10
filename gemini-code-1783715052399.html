@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado FUNECE - SEDUC CE | Educação Especial (LDB)</title>
+    <style>
+        :root {
+            --primary-color: #0b3d91; /* Azul profundo acadêmico */
+            --secondary-color: #1e60d0;
+            --bg-color: #f4f6f8;
+            --text-color: #2d3748;
+            --correct-bg: #d1fae5;
+            --correct-border: #059669;
+            --correct-text: #064e3b;
+            --incorrect-bg: #fee2e2;
+            --incorrect-border: #dc2626;
+            --incorrect-text: #7f1d1d;
+            --feedback-bg: #f0fdf4;
+            --feedback-border: #10b981;
+            --option-hover: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+
+        /* Header / Panel */
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-info h1 {
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .header-info p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .dashboard-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .question-card {
+            background: white;
+            padding: 35px;
+            border-radius: 10px;
+            margin-bottom: 35px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #cbd5e1;
+            transition: opacity 0.3s ease;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            font-weight: 800;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            white-space: nowrap;
+        }
+
+        .question-header::after {
+            content: "";
+            flex-grow: 1;
+            height: 2px;
+            background: #e2e8f0;
+        }
+
+        .enunciado {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            text-align: justify;
+            color: #1e293b;
+        }
+
+        .itens-julgamento {
+            margin: 15px 0 20px 25px;
+            list-style-type: none;
+        }
+
+        .itens-julgamento li {
+            margin-bottom: 12px;
+            position: relative;
+        }
+        
+        .itens-julgamento li::before {
+            content: "•";
+            color: var(--primary-color);
+            position: absolute;
+            left: -15px;
+            font-weight: bold;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            font-size: 1.05rem;
+        }
+
+        .option:hover:not(.disabled) {
+            border-color: var(--secondary-color);
+            background: var(--option-hover);
+        }
+
+        .option-letter {
+            font-weight: bold;
+            margin-right: 18px;
+            background: #f1f5f9;
+            min-width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--primary-color);
+            flex-shrink: 0;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Status das Alternativas */
+        .option.correta {
+            background-color: var(--correct-bg);
+            border-color: var(--correct-border);
+            color: var(--correct-text);
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--correct-border);
+            color: white;
+            border-color: var(--correct-border);
+        }
+
+        .option.incorreta {
+            background-color: var(--incorrect-bg);
+            border-color: var(--incorrect-border);
+            color: var(--incorrect-text);
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--incorrect-border);
+            color: white;
+            border-color: var(--incorrect-border);
+        }
+
+        .option.disabled {
+            pointer-events: none;
+        }
+
+        .question-card.answered .option:not(.correta):not(.incorreta) {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        /* Comentário do Professor */
+        .feedback {
+            display: none;
+            margin-top: 25px;
+            padding: 20px 25px;
+            background-color: var(--feedback-bg);
+            border-left: 6px solid var(--feedback-border);
+            border-radius: 0 8px 8px 0;
+            animation: slideDown 0.4s ease-out forwards;
+        }
+
+        .feedback h4 {
+            color: var(--correct-border);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .feedback p {
+            font-size: 1rem;
+            text-align: justify;
+            color: #1f2937;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal de Resultado */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .score-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .score-box .points {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+
+        .score-box .time-spent {
+            margin-top: 10px;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+        .btn-restart {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-restart:hover {
+            background: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; text-align: center; gap: 15px; }
+            .dashboard { width: 100%; justify-content: center; }
+            .question-card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-info">
+            <h1>Simulado SEDUC CE (Banca FUNECE)</h1>
+            <p>Conhecimentos Pedagógicos: LDB - Educação Especial (Arts. 58 ao 60)</p>
+        </div>
+        <div class="dashboard">
+            <div class="dashboard-item" title="Progresso">
+                <span>📝</span> <span id="progress-text">0 / 10</span>
+            </div>
+            <div class="dashboard-item" title="Tempo de Prova">
+                <span>⏱️</span> <span id="timer-text">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- Questões geradas via JavaScript -->
+    </main>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>Simulado Concluído!</h2>
+            <p>Confira seu desempenho na avaliação:</p>
+            <div class="score-box">
+                <div class="points"><span id="final-score">0</span>/10</div>
+                <div class="time-spent">Tempo total: <strong id="final-time">00:00</strong></div>
+            </div>
+            <button class="btn-restart" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                enunciado: "No que concerne ao conceito e à abrangência temporal da modalidade de educação especial, à luz das disposições insertas no art. 58 da Lei nº 9.394/1996 (LDB), assinale a afirmativa correta:",
+                opcoes: [
+                    "É oferecida exclusivamente na rede regular de ensino, para educandos com deficiência intelectual e múltipla, iniciando-se no ensino fundamental.",
+                    "Caracteriza-se como modalidade de educação escolar oferecida preferencialmente na rede regular de ensino, iniciando-se na educação infantil e estendendo-se ao longo da vida.",
+                    "Trata-se de etapa obrigatória da educação básica destinada a educandos com deficiência, devendo ser ofertada em escolas e classes estritamente especializadas.",
+                    "Inicia-se obrigatoriamente no ensino fundamental e estende-se até a conclusão do ensino médio, assegurado o apoio de instituições filantrópicas independentemente da rede pública."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> O art. 58 da LDB define a educação especial como a modalidade de educação escolar oferecida <em>preferencialmente</em> (não exclusivamente) na rede regular de ensino para educandos com deficiência, TGD e altas habilidades/superdotação. O §3º assegura que essa oferta tem início na <em>educação infantil e estende-se ao longo da vida</em>."
+            },
+            {
+                enunciado: "O art. 59 da LDB estabelece um rol de garantias aos educandos com deficiência, transtornos globais do desenvolvimento e altas habilidades ou superdotação. Com base no texto legal, analise os itens a seguir:<br><ul class='itens-julgamento'><li>I. Aos alunos com deficiências severas que não puderem atingir o nível exigido para a conclusão do ensino fundamental, é garantida a certificação de terminalidade específica.</li><li>II. Aos educandos superdotados, assegura-se a aceleração para concluir em menor tempo o programa escolar.</li><li>III. A lei exige que todos os professores das classes comuns do ensino regular possuam especialização obrigatória em nível superior para o atendimento à inclusão.</li><li>IV. A educação especial para o trabalho visa a integração apenas daqueles que revelarem capacidade imediata de inserção no mercado competitivo.</li></ul>Estão corretos, de acordo com a LDB, apenas os itens:",
+                opcoes: [
+                    "I e II.",
+                    "I, II e III.",
+                    "II e IV.",
+                    "I, III e IV."
+                ],
+                correta: 0,
+                comentario: "<strong>Gabarito: Letra A.</strong> Estão corretos os itens I e II (art. 59, inciso II). O item III é falso porque a LDB exige professores com <em>especialização</em> para o atendimento especializado, e professores <em>capacitados</em> para a integração nas classes comuns (inciso III). O item IV é falso, pois a LDB (inciso IV) garante condições adequadas <em>inclusive para os que não revelarem</em> capacidade de inserção no trabalho competitivo."
+            },
+            {
+                enunciado: "Segundo o § 2º do art. 58 da LDB, o atendimento educacional ao público da educação especial será realizado de forma segregada (em classes, escolas ou serviços especializados) sob qual condição?",
+                opcoes: [
+                    "Sempre que, em função das condições específicas dos alunos, não for possível a sua integração nas classes comuns de ensino regular.",
+                    "A critério exclusivo dos pais ou responsáveis legais, que detêm o direito de recusa à política de inclusão escolar.",
+                    "Como regra geral do sistema educacional brasileiro, para evitar prejuízos ao rendimento quantitativo dos alunos sem deficiência.",
+                    "Somente se houver laudo médico atestando deficiência física severa, vedada a segregação para alunos com altas habilidades."
+                ],
+                correta: 0,
+                comentario: "<strong>Gabarito: Letra A.</strong> A LDB adota a inclusão como regra (preferencialmente na rede regular). No entanto, o § 2º do art. 58 traz a exceção: o atendimento será em classes/escolas especializadas <em>'sempre que, em função das condições específicas dos alunos, não for possível a sua integração nas classes comuns de ensino regular.'</em>"
+            },
+            {
+                enunciado: "O legislador introduziu o art. 59-A na LDB visando ao mapeamento e desenvolvimento de potencialidades de parte do público da educação especial. Consoante o dispositivo, o poder público deverá instituir um cadastro nacional referente aos:",
+                opcoes: [
+                    "Alunos com deficiência múltipla matriculados na educação infantil e no ensino fundamental.",
+                    "Educandos com transtornos globais do desenvolvimento (TGD) em todas as esferas de governo.",
+                    "Alunos com altas habilidades ou superdotação matriculados na educação básica e na educação superior.",
+                    "Professores capacitados e especializados que atuam nas salas de recursos multifuncionais da rede pública."
+                ],
+                correta: 2,
+                comentario: "<strong>Gabarito: Letra C.</strong> Literalidade do art. 59-A da LDB: 'O poder público deverá instituir cadastro nacional de alunos com altas habilidades ou superdotação matriculados na educação básica e na educação superior, a fim de fomentar a execução de políticas públicas destinadas ao desenvolvimento pleno das potencialidades desse alunado.'"
+            },
+            {
+                enunciado: "As relações entre o Poder Público e as instituições do terceiro setor com atuação na educação especial estão regulamentadas no art. 60 da LDB. A esse respeito, julgue os enunciados a seguir e assinale a opção correspondente.<br><ul class='itens-julgamento'><li>I. Como alternativa preferencial, o poder público adotará a ampliação do atendimento aos educandos da educação especial na própria rede pública regular de ensino.</li><li>II. O apoio técnico e financeiro do Poder Público destina-se a instituições privadas, independentemente de possuírem fins lucrativos, desde que atuem na educação especial.</li><li>III. A ampliação do atendimento na rede pública exime o Estado de conceder qualquer tipo de apoio às instituições privadas especializadas.</li><li>IV. Para receberem apoio, as instituições privadas sem fins lucrativos devem ser especializadas e atuar exclusivamente em educação especial.</li></ul>É correto o que se afirma em:",
+                opcoes: [
+                    "I e II.",
+                    "II e III.",
+                    "I e IV.",
+                    "I, III e IV."
+                ],
+                correta: 2,
+                comentario: "<strong>Gabarito: Letra C (I e IV).</strong> O item I está correto (art. 60, parágrafo único). O item II está incorreto porque o art. 60 exige que sejam <em>sem fins lucrativos</em>. O item III está incorreto pois a expansão da rede pública ocorre <em>'independentemente do apoio às instituições previstas neste artigo'</em> (não anula o apoio). O item IV está correto (texto do <em>caput</em> do art. 60)."
+            },
+            {
+                enunciado: "A exigência de adequação do corpo docente é basilar para a efetividade da educação especial. De acordo com o art. 59, inciso III, da LDB, os sistemas de ensino devem assegurar professores:",
+                opcoes: [
+                    "Exclusivamente com formação superior em pedagogia, habilitados para atuar nas salas de recursos e nas classes comuns.",
+                    "Com especialização adequada em nível médio ou superior, para atendimento especializado, e professores do ensino regular capacitados para a integração.",
+                    "Capacitados em nível médio na modalidade Normal, tanto para a regência nas classes comuns quanto para o Atendimento Educacional Especializado (AEE).",
+                    "Com pós-graduação stricto sensu (mestrado ou doutorado) para o atendimento nas instituições privadas que recebem apoio financeiro do Estado."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> Segundo o inciso III do art. 59, exigem-se dois perfis de docentes: 1) professores com <em>especialização adequada em nível médio ou superior</em>, para o atendimento especializado; e 2) professores do ensino regular <em>capacitados</em> para a integração desses educandos nas classes comuns."
+            },
+            {
+                enunciado: "Além dos aspectos puramente curriculares, a LDB preocupa-se com o amparo social ao estudante da educação especial. Sobre essa temática (art. 59, inciso V), assinale a alternativa que reflete fielmente a garantia estabelecida na legislação:",
+                opcoes: [
+                    "Os alunos da educação especial farão jus a benefícios de programas sociais suplementares em valores correspondentes ao dobro do que é ofertado ao nível regular.",
+                    "A oferta de apoio técnico exime o governo da concessão de programas suplementares como alimentação e transporte escolar a esse alunado.",
+                    "O acesso igualitário aos benefícios dos programas sociais suplementares disponíveis para o respectivo nível do ensino regular é assegurado.",
+                    "A legislação delega a provisão de programas sociais de assistência aos educandos exclusivamente aos fundos e convênios municipais."
+                ],
+                correta: 2,
+                comentario: "<strong>Gabarito: Letra C.</strong> O inciso V do art. 59 garante o <em>'acesso igualitário aos benefícios dos programas sociais suplementares disponíveis para o respectivo nível do ensino regular'</em>, não permitindo exclusão, nem criando cotas com valores dobrados por força da LDB."
+            },
+            {
+                enunciado: "No que se refere à organização e às técnicas específicas voltadas para o alunado da educação especial (art. 59, LDB), analise o tratamento dado pelo legislador aos que não conseguem atingir o nível de conclusão, frente aos que possuem altas habilidades. A lei estabelece, respectivamente, para esses dois grupos:",
+                opcoes: [
+                    "Promoção automática para os com deficiência e bolsas de estudo no exterior para os superdotados.",
+                    "Terminalidade específica para suprir deficiências e aceleração para concluir em menor tempo o programa escolar para os superdotados.",
+                    "Atestado de frequência simples para conclusão do fundamental e ingresso precoce no nível superior para superdotados, sem exigência do ensino médio.",
+                    "Ensino profissionalizante obrigatório para pessoas com deficiência e currículo focado em ciências exatas para os alunos com altas habilidades."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> O art. 59, inciso II, assegura expressamente: <em>'terminalidade específica para aqueles que não puderem atingir o nível exigido para a conclusão do ensino fundamental, em virtude de suas deficiências, e aceleração para concluir em menor tempo o programa escolar para os superdotados'</em>."
+            },
+            {
+                enunciado: "A inserção no mundo laboral constitui etapa fundamental da socialização plena. Nos moldes do inciso IV do art. 59 da LDB, a educação especial para o trabalho deve:",
+                opcoes: [
+                    "Priorizar os alunos sem comprometimento cognitivo, visando garantir estatísticas favoráveis de empregabilidade pelas escolas inclusivas.",
+                    "Ser oferecida apenas nas instituições privadas filantrópicas, por demandarem maquinário não custeável pela rede pública.",
+                    "Garantir a integração na vida em sociedade, provendo condições adequadas inclusive para os que não revelarem capacidade de inserção no trabalho competitivo.",
+                    "Direcionar todos os educandos, compulsoriamente, para o trabalho artesanal e ofícios de baixa complexidade tecnológica."
+                ],
+                correta: 2,
+                comentario: "<strong>Gabarito: Letra C.</strong> A LDB determina que a educação para o trabalho visa a efetiva integração social. O inciso IV do art. 59 destaca que o sistema deve prever condições adequadas <em>'inclusive para os que não revelarem capacidade de inserção no trabalho competitivo'</em> (oficinas abrigadas, mercado apoiado, etc.)."
+            },
+            {
+                enunciado: "Sob a ótica da Lei de Diretrizes e Bases da Educação Nacional, a terminologia adotada para o público-alvo da educação especial é precisa e reflete os paradigmas contemporâneos de inclusão. Conforme a redação dada pela Lei nº 12.796/2013 ao art. 58 da LDB, assinale a alternativa que reproduz a exata denominação legal desse público:",
+                opcoes: [
+                    "Portadores de necessidades educacionais especiais, síndromes raras e superdotados.",
+                    "Pessoas com deficiência intelectual, sensorial ou física e alunos excepcionais.",
+                    "Alunos excepcionais, portadores de deficiências congênitas e jovens com talentos singulares.",
+                    "Educandos com deficiência, transtornos globais do desenvolvimento e altas habilidades ou superdotação."
+                ],
+                correta: 3,
+                comentario: "<strong>Gabarito: Letra D.</strong> A banca FUNECE frequentemente cobra a exatidão terminológica da lei. O art. 58 da LDB utiliza textualmente a expressão: <em>'educandos com deficiência, transtornos globais do desenvolvimento e altas habilidades ou superdotação'</em>. Termos como 'portadores', 'excepcionais' ou 'necessidades especiais' caíram em desuso no texto vigente da LDB."
+            }
+        ];
+
+        let answeredCount = 0;
+        const totalQuestions = questions.length;
+        let score = 0;
+        let timerInterval = null;
+        let timeInSeconds = 0;
+
+        const quizContainer = document.getElementById('quiz-container');
+        const progressText = document.getElementById('progress-text');
+        const timerText = document.getElementById('timer-text');
+        const resultModal = document.getElementById('result-modal');
+        const finalScoreText = document.getElementById('final-score');
+        const finalTimeText = document.getElementById('final-time');
+
+        // Formatar tempo MM:SS
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        // Lógica do Cronômetro
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeInSeconds++;
+                timerText.textContent = formatTime(timeInSeconds);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
+        // Renderizar Questões
+        function initQuiz() {
+            questions.forEach((q, qIndex) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `question-${qIndex}`;
+
+                // Mapear opções para HTML
+                const letters = ['A', 'B', 'C', 'D'];
+                const optionsHtml = q.opcoes.map((optText, optIndex) => `
+                    <div class="option" id="q${qIndex}-opt${optIndex}" onclick="selectAnswer(${qIndex}, ${optIndex})">
+                        <div class="option-letter">${letters[optIndex]}</div>
+                        <div class="option-text">${optText}</div>
+                    </div>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="question-header">
+                        <div class="question-number">Questão ${qIndex + 1}</div>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-container" id="options-container-${qIndex}">
+                        ${optionsHtml}
+                    </div>
+                    <div class="feedback" id="feedback-${qIndex}">
+                        <h4>💡 Comentário do Professor</h4>
+                        <p>${q.comentario}</p>
+                    </div>
+                `;
+
+                quizContainer.appendChild(card);
+            });
+
+            // Iniciar relógio ao carregar
+            startTimer();
+        }
+
+        // Lógica de Validação da Resposta
+        window.selectAnswer = function(qIndex, selectedOptIndex) {
+            const card = document.getElementById(`question-${qIndex}`);
+            
+            // Impede múltiplos cliques
+            if (card.classList.contains('answered')) return;
+
+            card.classList.add('answered');
+            answeredCount++;
+            progressText.textContent = `${answeredCount} / ${totalQuestions}`;
+
+            const correctOptIndex = questions[qIndex].correta;
+            const isCorrect = (selectedOptIndex === correctOptIndex);
+
+            if (isCorrect) {
+                score++;
+            }
+
+            // Aplicar classes CSS nas opções
+            const allOptions = document.querySelectorAll(`#options-container-${qIndex} .option`);
+            allOptions.forEach((optElem, idx) => {
+                optElem.classList.add('disabled'); // Bloqueia hover
+                
+                if (idx === correctOptIndex) {
+                    optElem.classList.add('correta');
+                } else if (idx === selectedOptIndex && !isCorrect) {
+                    optElem.classList.add('incorreta');
+                }
+            });
+
+            // Revelar comentário
+            document.getElementById(`feedback-${qIndex}`).style.display = 'block';
+
+            // Checar se finalizou o simulado
+            if (answeredCount === totalQuestions) {
+                finishQuiz();
+            }
+        };
+
+        // Finalização
+        function finishQuiz() {
+            stopTimer();
+            // Atraso sutil para o usuário visualizar a resposta da última questão antes do modal
+            setTimeout(() => {
+                finalScoreText.textContent = score;
+                finalTimeText.textContent = formatTime(timeInSeconds);
+                resultModal.style.display = 'flex';
+            }, 1000);
+        }
+
+        // Boot
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>

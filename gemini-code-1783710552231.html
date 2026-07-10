@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado SEDUC CE - LDB (FUNECE/UECE)</title>
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Azul escuro FUNECE */
+            --secondary: #2563eb;
+            --background: #f1f5f9;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #475569;
+            --success-bg: #dcfce7;
+            --success-border: #22c55e;
+            --success-text: #166534;
+            --error-bg: #fee2e2;
+            --error-border: #ef4444;
+            --error-text: #991b1b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+
+        /* Header e Placar flutuante */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Container Principal */
+        main {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Questões */
+        .question-card {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        .enunciado {
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .itens-romanos {
+            margin: 1rem 0 1rem 2rem;
+            list-style-type: upper-roman;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Alternativas */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--surface);
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .option:hover:not(.desabilitada) {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        .option-letter {
+            font-weight: bold;
+            background-color: var(--background);
+            color: var(--text-muted);
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1rem;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Estados das alternativas */
+        .option.correta {
+            background-color: var(--success-bg);
+            border-color: var(--success-border);
+            color: var(--success-text);
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--success-border);
+            color: white;
+            border-color: var(--success-border);
+        }
+
+        .option.incorreta {
+            background-color: var(--error-bg);
+            border-color: var(--error-border);
+            color: var(--error-text);
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--error-border);
+            color: white;
+            border-color: var(--error-border);
+        }
+
+        .desabilitada {
+            pointer-events: none;
+        }
+
+        /* Feedback do Professor */
+        .feedback {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.25rem;
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 0 6px 6px 0;
+            animation: fadeIn 0.5s;
+        }
+
+        .feedback h3 {
+            color: #b45309;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback p {
+            font-size: 0.95rem;
+            color: #451a03;
+            text-align: justify;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal de Fim de Simulado */
+        #end-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .end-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .end-card h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .score-highlight {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--secondary);
+            margin: 1rem 0;
+        }
+
+        .btn-restart {
+            margin-top: 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-restart:hover {
+            background-color: #152c6b;
+        }
+
+        @media(max-width: 600px) {
+            .status-panel { font-size: 0.9rem; gap: 1rem; }
+            .question-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado SEDUC CE (Banca FUNECE/UECE)</h1>
+            <p>LDB - Título V: Níveis e Modalidades (Arts. 21 a 28)</p>
+        </div>
+        <div class="status-panel">
+            <div id="progresso">0/10</div>
+            <div id="cronometro">00:00</div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- As questões serão injetadas aqui via JavaScript -->
+    </main>
+
+    <div id="end-screen">
+        <div class="end-card">
+            <h2>Simulado Concluído!</h2>
+            <p>Seu desempenho final:</p>
+            <div class="score-highlight" id="final-score">0/10</div>
+            <p>Tempo de Prova: <strong id="final-time">00:00</strong></p>
+            <button class="btn-restart" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        // Banco de Questões Baseado Estritamente no Texto Fornecido
+        const questoes = [
+            {
+                id: 1,
+                enunciado: "De acordo com as disposições do Art. 21 e do Art. 22 da Lei de Diretrizes e Bases da Educação Nacional (LDB), a educação escolar compõe-se de diferentes níveis. Sobre a composição e os objetivos precípuos da educação básica, assinale a alternativa correta, considerando as atualizações recentes da legislação:",
+                alternativas: [
+                    { texto: "A educação básica é formada exclusivamente pelo ensino fundamental e ensino médio, tendo como objetivo precípuo o preparo para o mercado de trabalho.", correta: false },
+                    { texto: "A educação escolar compõe-se de educação básica (educação infantil, ensino fundamental e ensino médio) e educação superior, sendo a alfabetização plena e a formação de leitores objetivos precípuos da educação básica.", correta: true },
+                    { texto: "A educação básica compõe-se de educação infantil, ensino fundamental, ensino médio e educação superior, possuindo como finalidade estrita a progressão em estudos posteriores.", correta: false },
+                    { texto: "A alfabetização plena e a formação de leitores são objetivos precípuos e exclusivos do ensino fundamental, não se aplicando às finalidades gerais da educação básica delineadas na referida Lei.", correta: false }
+                ],
+                feedback: "<strong>Alternativa Correta: B.</strong> O Art. 21 define claramente que a educação escolar compõe-se de educação básica (infantil, fundamental e médio) e educação superior. O Art. 22, parágrafo único (incluído pela Lei nº 14.407/2022), estabelece que a alfabetização plena e a formação de leitores são objetivos precípuos da educação básica como um todo."
+            },
+            {
+                id: 2,
+                enunciado: "O Art. 23 da LDB trata da organização da educação básica. Analise os itens a seguir relativos às formas de organização e calendário escolar:<br><ul class='itens-romanos'><li>I. A educação básica poderá organizar-se em séries anuais, períodos semestrais, ciclos, grupos não-seriados, ou forma diversa, sempre que o interesse do processo de aprendizagem o recomendar.</li><li>II. A escola poderá reclassificar os alunos, inclusive quando se tratar de transferências entre estabelecimentos situados no País e no exterior.</li><li>III. O calendário escolar deverá adequar-se às peculiaridades locais, permitindo-se a redução do número de horas letivas previsto na Lei em casos de extrema necessidade climática.</li></ul>Estão corretos os itens:",
+                alternativas: [
+                    { texto: "I e II, apenas.", correta: true },
+                    { texto: "I e III, apenas.", correta: false },
+                    { texto: "II e III, apenas.", correta: false },
+                    { texto: "I, II e III.", correta: false }
+                ],
+                feedback: "<strong>Alternativa Correta: A (I e II).</strong> O item III está incorreto porque o Art. 23, § 2º afirma taxativamente que o calendário escolar deverá adequar-se às peculiaridades locais, climáticas e econômicas, <em>sem com isso reduzir o número de horas letivas</em> previsto na LDB."
+            },
+            {
+                id: 3,
+                enunciado: "Nos termos do Art. 24 da LDB, que estabelece as regras comuns para a organização da educação básica nos níveis fundamental e médio, assinale a assertiva que apresenta com exatidão a carga horária, a avaliação de rendimento e o controle de frequência vigentes:",
+                alternativas: [
+                    { texto: "A carga horária mínima anual será de 800 horas para o ensino fundamental e médio, com frequência mínima exigida de 70% do total de horas letivas.", correta: false },
+                    { texto: "A verificação do rendimento escolar adotará avaliação contínua e cumulativa, com prevalência dos aspectos quantitativos sobre os qualitativos, e dos resultados de provas finais sobre os do período.", correta: false },
+                    { texto: "A carga horária mínima anual será de 800 horas para o ensino fundamental e de 1.000 horas para o ensino médio, exigindo-se a frequência mínima de 75% do total de horas letivas para aprovação.", correta: true },
+                    { texto: "O regimento escolar não pode admitir formas de progressão parcial sob nenhuma hipótese, devendo o aluno reter-se integralmente na série em caso de reprovação em qualquer componente curricular.", correta: false }
+                ],
+                feedback: "<strong>Alternativa Correta: C.</strong> Conforme a redação dada pela Lei nº 14.945/2024 ao inciso I do Art. 24, o EF tem 800h e o EM tem 1000h (distribuídas em 200 dias). O inciso VI define a frequência mínima de 75%. A alternativa B inverte a lógica qualitativa sobre quantitativa (inciso V, 'a'). A alternativa D contraria o inciso III, que permite a progressão parcial."
+            },
+            {
+                id: 4,
+                enunciado: "A prática da educação física é componente curricular obrigatório da educação básica, integrada à proposta pedagógica da escola (Art. 26, § 3º). No entanto, sua prática é facultativa para determinados alunos. Analise as situações abaixo:<br><ul class='itens-romanos'><li>I. Aluno que cumpra jornada de trabalho igual ou superior a seis horas.</li><li>II. Aluno maior de trinta anos de idade.</li><li>III. Aluno que tenha prole.</li><li>IV. Aluna regularmente matriculada no período noturno, independentemente de sua condição laborativa.</li></ul>Segundo a LDB, a prática da educação física é facultativa aos alunos descritos APENAS em:",
+                alternativas: [
+                    { texto: "I, II e IV.", correta: false },
+                    { texto: "I e III.", correta: false },
+                    { texto: "II, III e IV.", correta: false },
+                    { texto: "I, II e III.", correta: true }
+                ],
+                feedback: "<strong>Alternativa Correta: D (I, II e III).</strong> O item IV está incorreto, pois o fato de estudar à noite, por si só, não torna a prática facultativa na atual redação da LDB (houve veto histórico sobre isso). As hipóteses legais válidas estão no § 3º do Art. 26: jornada >= 6h, > 30 anos, serviço militar, amparo do DL 1.044/69, e ter prole."
+            },
+            {
+                id: 5,
+                enunciado: "A organização curricular da educação básica (Art. 26) determina componentes obrigatórios e temas transversais a serem inseridos na Base Nacional Comum Curricular (BNCC). Considerando o texto legal, assinale a alternativa INCORRETA:",
+                alternativas: [
+                    { texto: "O ensino da arte, especialmente em suas expressões regionais, constituirá componente curricular obrigatório da educação básica, englobando as linguagens de artes visuais, dança, música e teatro.", correta: false },
+                    { texto: "No currículo do ensino fundamental, a partir do sexto ano, será ofertada a língua inglesa.", correta: false },
+                    { texto: "A exibição de filmes de produção nacional constituirá componente curricular obrigatório integrado à proposta pedagógica, por, no mínimo, 4 (quatro) horas semanais.", correta: true },
+                    { texto: "Conteúdos relativos aos direitos humanos e à prevenção de todas as formas de violência contra a criança, o adolescente e a mulher serão incluídos como temas transversais nos currículos.", correta: false }
+                ],
+                feedback: "<strong>Alternativa Correta: C (É a incorreta legalmente).</strong> O erro da alternativa C está na carga horária. O Art. 26, § 8º estipula a exibição obrigatória de filmes nacionais por, no mínimo, <strong>2 (duas) horas mensais</strong>, e não 4 horas semanais."
+            },
+            {
+                id: 6,
+                enunciado: "As Leis nº 14.533/2023, 15.360/2026 e 14.986/2024 introduziram inovações significativas na LDB relativas à infraestrutura, à educação digital e às perspectivas femininas. Sobre essas inovações, julgue as assertivas:<br><ul class='itens-romanos'><li>I. A educação digital, focada no letramento digital, computação e robótica, é componente curricular exclusivo do ensino médio.</li><li>II. O estudo da história e cultura afro-brasileira e indígena é obrigatório nos estabelecimentos de ensino fundamental e médio, públicos e privados.</li><li>III. É obrigatória a inclusão de abordagens fundamentadas nas experiências e perspectivas femininas nos conteúdos curriculares de ensino fundamental e médio.</li><li>IV. O dever do poder público em assegurar infraestrutura (biblioteca, internet, laboratórios, etc.) aplica-se a todas as escolas públicas de educação básica, respeitadas as especificidades de cada etapa.</li></ul>Estão de acordo com a LDB as afirmativas:",
+                alternativas: [
+                    { texto: "I, II e III, apenas.", correta: false },
+                    { texto: "II, III e IV, apenas.", correta: true },
+                    { texto: "I, III e IV, apenas.", correta: false },
+                    { texto: "I, II, III e IV.", correta: false }
+                ],
+                feedback: "<strong>Alternativa Correta: B (II, III e IV).</strong> O item I é falso porque a educação digital (Art. 26, § 11) será componente curricular do ensino fundamental <strong>E</strong> do ensino médio, não sendo exclusiva deste último. Os itens II (Art. 26-A), III (Art. 26-B) e IV (Art. 25-A) retratam perfeitamente os textos das alterações legislativas recentes citadas no material."
+            },
+            {
+                id: 7,
+                enunciado: "Com base no Art. 24 da LDB, o regramento para a classificação de alunos em qualquer série ou etapa (exceto a primeira do ensino fundamental) obedece a critérios específicos. É facultado à escola classificar um aluno independentemente de escolarização anterior. Qual é a exigência legal para que essa classificação ocorra?",
+                alternativas: [
+                    { texto: "Aprovação unânime do Conselho Tutelar e da Secretaria de Educação Estadual, baseada na idade cronológica do estudante.", correta: false },
+                    { texto: "Apresentação de histórico escolar validado em cartório ou chancelado pelo Ministério das Relações Exteriores, no caso de imigrantes.", correta: false },
+                    { texto: "Comprovação de vínculo empregatício do aluno, garantindo que a vivência prática compense a ausência de histórico formal.", correta: false },
+                    { texto: "Avaliação feita pela escola, que defina o grau de desenvolvimento e experiência do candidato e permita sua inscrição na série ou etapa adequada, conforme regulamentação do respectivo sistema de ensino.", correta: true }
+                ],
+                feedback: "<strong>Alternativa Correta: D.</strong> Trata-se da literalidade do Art. 24, inciso II, alínea 'c'. A reclassificação independente de escolarização anterior (como no caso de pessoas que nunca frequentaram a escola regular, mas possuem saberes práticos) é feita estritamente mediante <strong>avaliação feita pela escola</strong> que comprove o grau de desenvolvimento do candidato."
+            },
+            {
+                id: 8,
+                enunciado: "O Art. 27 da LDB fixa diretrizes basilares para os conteúdos curriculares da educação básica. Entre essas diretrizes, as bancas costumam exigir a literalidade do texto. Dentre as opções abaixo, assinale aquela que NÃO configura uma diretriz expressa no referido artigo:",
+                alternativas: [
+                    { texto: "Difusão de valores fundamentais ao interesse social, aos direitos e deveres dos cidadãos, de respeito ao bem comum e à ordem democrática.", correta: false },
+                    { texto: "Consideração das condições de escolaridade dos alunos em cada estabelecimento.", correta: false },
+                    { texto: "Orientação para o trabalho.", correta: false },
+                    { texto: "Obrigatoriedade de certificação técnica profissionalizante ao final da última etapa da educação básica.", correta: true }
+                ],
+                feedback: "<strong>Alternativa Correta: D (Não é uma diretriz do Art. 27).</strong> As diretrizes expressas no Art. 27 são: difusão de valores sociais (I), consideração das condições de escolaridade (II), orientação para o trabalho (III) e promoção do desporto educacional/práticas não-formais (IV). A alternativa D cria uma obrigação inexistente no Art. 27, misturando com o escopo da educação profissional tecnológica."
+            },
+            {
+                id: 9,
+                enunciado: "O ensino da História do Brasil (Art. 26, § 4º e Art. 26-A) possui contornos precisos na LDB para garantir a diversidade cultural e étnica na formação educacional. Analise a alternativa que expressa o rigor técnico da legislação em vigor:",
+                alternativas: [
+                    { texto: "O ensino da História do Brasil levará em conta exclusivamente as matrizes indígena e africana para a formação do povo brasileiro, visando reparação histórica.", correta: false },
+                    { texto: "Os conteúdos referentes à história e cultura afro-brasileira e dos povos indígenas brasileiros serão ministrados no âmbito de todo o currículo escolar, em especial nas áreas de educação artística e de literatura e história brasileiras.", correta: true },
+                    { texto: "A obrigatoriedade do estudo da história e cultura afro-brasileira e indígena restringe-se aos estabelecimentos de ensino públicos, garantindo a autonomia plena das instituições privadas.", correta: false },
+                    { texto: "O resgate das contribuições das matrizes formadoras do Brasil deve focar unicamente na área cultural e literária, sendo vedada a abordagem de seus impactos na economia e política nacional.", correta: false }
+                ],
+                feedback: "<strong>Alternativa Correta: B.</strong> A assertiva B traz a literalidade do Art. 26-A, § 2º. A alternativa A erra ao usar 'exclusivamente' (o § 4º do Art. 26 inclui a matriz europeia). A alternativa C erra porque o caput do Art. 26-A é claro: obrigatório nos estabelecimentos públicos e PRIVADOS. A alternativa D erra porque a lei (Art. 26-A, § 1º) manda resgatar contribuições nas áreas social, econômica e política."
+            },
+            {
+                id: 10,
+                enunciado: "Na oferta de educação básica para a população rural (Art. 28), os sistemas de ensino promoverão adaptações à vida no campo. Com relação ao fechamento de escolas do campo, indígenas e quilombolas (Parágrafo único do referido artigo), identifique a tramitação legal obrigatória exigida para tal ato administrativo:",
+                alternativas: [
+                    { texto: "Ato discricionário exclusivo do Poder Executivo Municipal, sem necessidade de consulta prévia, embasado apenas no censo de evasão escolar local.", correta: false },
+                    { texto: "Precedido de manifestação do órgão normativo do respectivo sistema de ensino, considerando a justificativa da Secretaria de Educação, a análise do impacto e a manifestação da comunidade escolar.", correta: true },
+                    { texto: "Autorização prévia do Ministério da Educação (MEC) e votação favorável em plebiscito municipal realizado junto às comunidades rurais atingidas.", correta: false },
+                    { texto: "Homologação por juiz da vara da infância e juventude, após relatório unicamente financeiro atestando a inviabilidade de manutenção do prédio escolar.", correta: false }
+                ],
+                feedback: "<strong>Alternativa Correta: B.</strong> A LDB (Art. 28, parágrafo único) blinda as escolas do campo, indígenas e quilombolas contra fechamentos arbitrários. Para o fechamento, a lei exige o preenchimento de três requisitos cumulativos a serem analisados pelo órgão normativo: 1) justificativa da Secretaria; 2) diagnóstico de impacto; 3) manifestação da comunidade escolar."
+            }
+        ];
+
+        // Estado Global
+        let acertos = 0;
+        let respondidas = 0;
+        let tempoSegundos = 0;
+        let timerInterval;
+
+        // Formatação de Tempo
+        function formatarTempo(segundos) {
+            const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const seg = (segundos % 60).toString().padStart(2, '0');
+            return `${min}:${seg}`;
+        }
+
+        // Lógica do Timer
+        function iniciarCronometro() {
+            timerInterval = setInterval(() => {
+                tempoSegundos++;
+                document.getElementById('cronometro').innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function pararCronometro() {
+            clearInterval(timerInterval);
+        }
+
+        // Renderização da Prova
+        function renderizarQuestoes() {
+            const container = document.getElementById('quiz-container');
+            const letras = ['A', 'B', 'C', 'D'];
+
+            questoes.forEach((q, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card';
+                qCard.id = `questao-${index}`;
+
+                let htmlContent = `
+                    <div class="question-header">
+                        <h2>Questão ${index + 1}</h2>
+                        <span>Banca: FUNECE / Nível: Médio-Difícil</span>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-container" id="options-${index}">
+                `;
+
+                q.alternativas.forEach((alt, i) => {
+                    htmlContent += `
+                        <div class="option" onclick="verificarResposta(${index}, ${i}, ${alt.correta})">
+                            <div class="option-letter">${letras[i]}</div>
+                            <div class="option-text">${alt.texto}</div>
+                        </div>
+                    `;
+                });
+
+                htmlContent += `
+                    </div>
+                    <div class="feedback" id="feedback-${index}">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Comentário do Professor
+                        </h3>
+                        <p>${q.feedback}</p>
+                    </div>
+                `;
+
+                qCard.innerHTML = htmlContent;
+                container.appendChild(qCard);
+            });
+        }
+
+        // Lógica de Resposta
+        function verificarResposta(questaoIndex, altIndex, isCorreta) {
+            const optionsContainer = document.getElementById(`options-${questaoIndex}`);
+            const alternativas = optionsContainer.querySelectorAll('.option');
+
+            // Previne múltiplos cliques na mesma questão
+            if (optionsContainer.classList.contains('respondida')) return;
+            optionsContainer.classList.add('respondida');
+
+            // Verifica as opções e pinta de acordo
+            alternativas.forEach((alt, idx) => {
+                alt.classList.add('desabilitada'); // bloqueia todas
+                
+                if (idx === altIndex) { // A que o usuário clicou
+                    if (isCorreta) {
+                        alt.classList.add('correta');
+                        acertos++;
+                    } else {
+                        alt.classList.add('incorreta');
+                    }
+                }
+
+                // Se não clicou na correta, mas essa é a correta, pinta de verde também
+                if (questoes[questaoIndex].alternativas[idx].correta) {
+                    alt.classList.add('correta');
+                }
+            });
+
+            // Exibe o comentário
+            document.getElementById(`feedback-${questaoIndex}`).style.display = 'block';
+
+            // Atualiza status global
+            respondidas++;
+            document.getElementById('progresso').innerText = `${respondidas}/10`;
+
+            // Verifica fim de prova
+            if (respondidas === 10) {
+                finalizarSimulado();
+            }
+        }
+
+        function finalizarSimulado() {
+            pararCronometro();
+            
+            // Exibir modal após um leve atraso para o usuário ver a última cor
+            setTimeout(() => {
+                document.getElementById('final-score').innerText = `${acertos}/10`;
+                document.getElementById('final-time').innerText = formatarTempo(tempoSegundos);
+                document.getElementById('end-screen').style.display = 'flex';
+            }, 800);
+        }
+
+        // Init
+        window.onload = () => {
+            renderizarQuestoes();
+            iniciarCronometro();
+        };
+    </script>
+</body>
+</html>

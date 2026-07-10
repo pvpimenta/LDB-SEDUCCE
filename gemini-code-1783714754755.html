@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado SEDUC CE - FUNECE: Educação de Jovens e Adultos (EJA)</title>
+    <style>
+        :root {
+            --primary: #0f172a; /* Escuro elegante */
+            --secondary: #3b82f6; /* Azul destaque */
+            --accent: #1d4ed8;
+            --background: #f1f5f9;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success-bg: #dcfce7;
+            --success-border: #22c55e;
+            --success-text: #15803d;
+            --error-bg: #fee2e2;
+            --error-border: #ef4444;
+            --error-text: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-top: 0.2rem;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Layout Principal */
+        main {
+            max-width: 850px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s ease;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header h2 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .question-meta {
+            font-size: 0.8rem;
+            color: white;
+            background: var(--secondary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .enunciado {
+            font-size: 1.1rem;
+            margin-bottom: 1.8rem;
+            text-align: justify;
+            color: #334155;
+            line-height: 1.7;
+        }
+
+        .itens-romanos {
+            margin: 1.2rem 0 1.2rem 2.5rem;
+            list-style-type: upper-roman;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 0.6rem;
+            padding-left: 0.5rem;
+        }
+
+        /* Opções */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 1.2rem;
+            background-color: var(--surface);
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.05rem;
+            color: #1e293b;
+        }
+
+        .option:hover:not(.desabilitada) {
+            background-color: #f8fafc;
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .option-letter {
+            font-weight: 800;
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1.2rem;
+            border: 2px solid #cbd5e1;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        /* Cores de Validação */
+        .option.correta {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success-border) !important;
+            color: var(--success-text) !important;
+            font-weight: 600;
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--success-border) !important;
+            color: white !important;
+            border-color: var(--success-border) !important;
+        }
+
+        .option.incorreta {
+            background-color: var(--error-bg) !important;
+            border-color: var(--error-border) !important;
+            color: var(--error-text) !important;
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--error-border) !important;
+            color: white !important;
+            border-color: var(--error-border) !important;
+        }
+
+        .desabilitada {
+            pointer-events: none;
+            opacity: 0.75;
+        }
+
+        /* Comentário */
+        .feedback {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f0f9ff;
+            border-left: 6px solid var(--secondary);
+            border-radius: 0 8px 8px 0;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .feedback h3 {
+            color: var(--accent);
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback p {
+            font-size: 1rem;
+            color: #0f172a;
+            text-align: justify;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Resultado */
+        #end-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .end-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .end-card h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .score-highlight {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 1.5rem 0;
+            line-height: 1;
+        }
+
+        .btn-restart {
+            margin-top: 2rem;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 1.2rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-restart:hover {
+            background-color: #1e3a8a;
+        }
+
+        @media(max-width: 768px) {
+            header { flex-direction: column; gap: 1rem; text-align: center; }
+            .status-panel { width: 100%; justify-content: center; }
+            .question-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado SEDUC CE - Banca FUNECE</h1>
+            <p>Educação de Jovens e Adultos (Arts. 37 e 38 da LDB)</p>
+        </div>
+        <div class="status-panel">
+            <div>Progresso: <span id="progresso">0/10</span></div>
+            <div>Tempo: <span id="cronometro">00:00</span></div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        </main>
+
+    <div id="end-screen">
+        <div class="end-card">
+            <h2>Simulado Concluído!</h2>
+            <p>Seu desempenho na etapa de conhecimentos sobre EJA:</p>
+            <div class="score-highlight" id="final-score">0/10</div>
+            <p>Tempo de prova: <strong id="final-time">00:00</strong></p>
+            <button class="btn-restart" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                id: 1,
+                enunciado: "De acordo com o Art. 37 da Lei de Diretrizes e Bases da Educação Nacional (LDB), a Educação de Jovens e Adultos (EJA) destina-se a um público específico e possui uma finalidade clara. Assinale a alternativa que descreve corretamente essa destinação e finalidade:",
+                alternativas: [
+                    { texto: "É destinada aos alunos com deficiência que não concluíram os estudos, constituindo instrumento para a educação especial inclusiva.", correta: false },
+                    { texto: "É destinada àqueles que não tiveram acesso ou continuidade de estudos nos ensinos fundamental e médio na idade própria, e constituirá instrumento para a educação e a aprendizagem ao longo da vida.", correta: true },
+                    { texto: "Destina-se exclusivamente à alfabetização de adultos maiores de 18 anos, caracterizando-se como etapa preparatória para o ensino técnico.", correta: false },
+                    { texto: "Tem como público-alvo os jovens em conflito com a lei, servindo como instrumento de ressocialização obrigatório no sistema socioeducativo.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: B.</strong> A redação reflete o caput do Art. 37 exato. A EJA é para quem não teve acesso/continuidade no ensino fundamental e médio na idade própria, e é um instrumento para a aprendizagem ao longo da vida."
+            },
+            {
+                id: 2,
+                enunciado: "A FUNECE costuma cobrar o texto literal sobre a articulação das modalidades educacionais. O § 3º do Art. 37 da LDB determina que a educação de jovens e adultos deverá articular-se:",
+                alternativas: [
+                    { texto: "Exclusivamente com a educação especial, de forma a integrar metodologias inclusivas para todos os alunos maiores de idade.", correta: false },
+                    { texto: "Obrigatoriamente com o ensino superior tecnológico, promovendo a rápida inserção acadêmica do trabalhador.", correta: false },
+                    { texto: "Preferencialmente, com a educação profissional, na forma do regulamento.", correta: true },
+                    { texto: "Facultativamente com o ensino militar, visando o fortalecimento dos valores cívicos e patrióticos.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: C.</strong> A palavra-chave estipulada pela LDB no Art. 37, § 3º, é 'preferencialmente' com a 'educação profissional'. Bancas adoram trocar 'preferencialmente' por 'obrigatoriamente' ou 'exclusivamente'."
+            },
+            {
+                id: 3,
+                enunciado: "Para garantir o acesso e a continuidade dos estudos daqueles que trabalham, a LDB estabelece diretrizes para o Poder Público e para os sistemas de ensino. Segundo os parágrafos do Art. 37, é atribuição do Poder Público:",
+                alternativas: [
+                    { texto: "Remunerar o trabalhador pelo tempo de permanência na escola através de bolsas integrais custeadas pelo FNDE.", correta: false },
+                    { texto: "Obrigar as empresas privadas a instalarem salas de aula nos locais de trabalho para seus funcionários sem escolaridade básica.", correta: false },
+                    { texto: "Viabilizar e estimular o acesso e a permanência do trabalhador na escola, mediante ações integradas e complementares entre si.", correta: true },
+                    { texto: "Reduzir a carga horária obrigatória da BNCC pela metade para os trabalhadores que comprovarem vínculo empregatício formal.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: C.</strong> De acordo com o Art. 37, § 2º, a lei determina que o Poder Público 'viabilizará e estimulará o acesso e a permanência do trabalhador na escola, mediante ações integradas e complementares entre si'. Não há previsão legal nos Arts. 37/38 para redução da BNCC ou remuneração direta por frequência escolar na EJA."
+            },
+            {
+                id: 4,
+                enunciado: "Acerca da oferta de oportunidades educacionais gratuitas aos jovens e adultos, os sistemas de ensino devem planejar cursos e exames apropriados. Conforme o Art. 37, § 1º, quais fatores devem ser considerados para garantir a apropriação dessas oportunidades?",
+                alternativas: [
+                    { texto: "As características do alunado, seus interesses, condições de vida e de trabalho.", correta: true },
+                    { texto: "Exclusivamente a idade cronológica do estudante e seu histórico de retenção na escola regular.", correta: false },
+                    { texto: "O Produto Interno Bruto (PIB) do município e a disponibilidade orçamentária para a impressão de apostilas.", correta: false },
+                    { texto: "As diretrizes das organizações não governamentais parceiras e os interesses do mercado local, em detrimento dos interesses individuais.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: A.</strong> A oferta da EJA deve ser contextualizada. A LDB, no Art. 37, § 1º, exige que sejam 'consideradas as características do alunado, seus interesses, condições de vida e de trabalho'."
+            },
+            {
+                id: 5,
+                enunciado: "No que tange aos cursos e exames supletivos mantidos pelos sistemas de ensino para a Educação de Jovens e Adultos (Art. 38 da LDB), assinale a alternativa juridicamente correta:",
+                alternativas: [
+                    { texto: "Os exames supletivos não habilitam ao prosseguimento de estudos em caráter regular, servindo apenas para certificação curricular terminal.", correta: false },
+                    { texto: "Tais cursos e exames compreenderão a base nacional comum do currículo, habilitando ao prosseguimento de estudos em caráter regular.", correta: true },
+                    { texto: "Os cursos supletivos são isentos da Base Nacional Comum Curricular (BNCC), focando-se unicamente na parte diversificada e regional.", correta: false },
+                    { texto: "Os exames compreenderão unicamente a aferição de conhecimentos de leitura, escrita e cálculo básico, sem a necessidade de contemplar as demais áreas da BNCC.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: B.</strong> O caput do Art. 38 deixa explícito que os cursos e exames supletivos 'compreenderão a base nacional comum do currículo' e habilitarão 'ao prosseguimento de estudos em caráter regular'."
+            },
+            {
+                id: 6,
+                enunciado: "O recorte etário é fundamental para o ingresso nos exames certificadores da EJA. Segundo a LDB (Art. 38, § 1º), a realização de exames no nível de conclusão do <strong>ensino fundamental</strong> é permitida para maiores de:",
+                alternativas: [
+                    { texto: "14 (quatorze) anos.", correta: false },
+                    { texto: "15 (quinze) anos.", correta: true },
+                    { texto: "16 (dezesseis) anos.", correta: false },
+                    { texto: "18 (dezoito) anos.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: B.</strong> Art. 38, § 1º, inciso I: os exames no nível de conclusão do ensino fundamental realizar-se-ão para os <strong>maiores de quinze anos</strong>."
+            },
+            {
+                id: 7,
+                enunciado: "Marcos, de 17 anos de idade, abandonou o ensino médio regular no primeiro ano para auxiliar na renda familiar. Ele deseja realizar os exames supletivos da EJA para obter seu certificado de conclusão do <strong>ensino médio</strong> imediatamente. Diante da legislação educacional (LDB, Art. 38, § 1º), o pleito de Marcos é:",
+                alternativas: [
+                    { texto: "Deferido, pois ao comprovar vínculo laboral a idade mínima é reduzida para 16 anos.", correta: false },
+                    { texto: "Indeferido, pois a LDB exige a idade mínima de 18 anos completos para a realização de exames supletivos no nível de conclusão do ensino médio.", correta: true },
+                    { texto: "Deferido, uma vez que a EJA abrange todos os jovens a partir dos 15 anos para qualquer etapa da educação básica.", correta: false },
+                    { texto: "Indeferido, pois a LDB veda o acesso de menores de 21 anos aos exames supletivos do ensino médio.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: B.</strong> Como Marcos quer concluir o <strong>ensino médio</strong> através dos exames, ele esbarra no inciso II do § 1º do Art. 38, que determina a idade para os <strong>maiores de dezoito anos</strong>. Como tem 17, o pleito será indeferido."
+            },
+            {
+                id: 8,
+                enunciado: "A educação acontece também fora dos muros escolares. Para os jovens e adultos que constroem saberes na vida cotidiana e no trabalho, a LDB garante mecanismos de legitimação. O § 2º do Art. 38 estabelece que os conhecimentos e habilidades adquiridos pelos educandos por meios informais:",
+                alternativas: [
+                    { texto: "Serão aferidos e reconhecidos mediante exames.", correta: true },
+                    { texto: "Não possuem valor legal para fins de certificação na educação básica regular.", correta: false },
+                    { texto: "Poderão dispensar o aluno de cursar o ensino médio, mediante simples declaração patronal.", correta: false },
+                    { texto: "Deverão ser convertidos em créditos de carga horária exclusiva para a educação profissional técnica.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: A.</strong> O Art. 38, § 2º é direto e claro: 'Os conhecimentos e habilidades adquiridos pelos educandos por meios informais serão aferidos e reconhecidos mediante exames'."
+            },
+            {
+                id: 9,
+                enunciado: "Preencha as lacunas com base no texto da LDB sobre a EJA: 'A educação de jovens e adultos deverá articular-se, ______________, com a educação ______________, na forma do regulamento.'",
+                alternativas: [
+                    { texto: "exclusivamente / técnica", correta: false },
+                    { texto: "obrigatoriamente / de tempo integral", correta: false },
+                    { texto: "preferencialmente / profissional", correta: true },
+                    { texto: "facultativamente / superior", correta: false }
+                ],
+                feedback: "<strong>Gabarito: C.</strong> Questão típica de preenchimento de lacunas da banca FUNECE. O texto exato do Art. 37, § 3º dita que a articulação deve ocorrer 'preferencialmente, com a educação profissional'."
+            },
+            {
+                id: 10,
+                enunciado: "Julgue os itens a seguir sobre a EJA e o marco legal da LDB:<br><ul class='itens-romanos'><li>I. A EJA é um direito exclusivo dos adultos, não abrangendo juridicamente os jovens menores de 18 anos em nenhuma de suas ofertas.</li><li>II. Os exames da EJA não têm validade para o prosseguimento de estudos no ensino superior, configurando-se como uma terminalidade fechada.</li><li>III. É dever dos sistemas de ensino assegurar oportunidades educacionais gratuitas aos jovens e adultos que não puderam efetuar os estudos na idade regular.</li></ul>Está(ão) correto(s) apenas o(s) item(ns):",
+                alternativas: [
+                    { texto: "I e II.", correta: false },
+                    { texto: "II.", correta: false },
+                    { texto: "III.", correta: true },
+                    { texto: "I e III.", correta: false }
+                ],
+                feedback: "<strong>Gabarito: C.</strong> O item I é falso: os exames do ensino fundamental são abertos a partir dos 15 anos (jovens, portanto). O item II é falso: o caput do Art. 38 afirma que os cursos/exames habilitam 'ao prosseguimento de estudos em caráter regular' (o que inclui o Ensino Superior, se concluído o Ensino Médio). Apenas o item III é verdadeiro (Art. 37, § 1º)."
+            }
+        ];
+
+        let answeredQuestions = 0;
+        let acertos = 0;
+        let tempoSegundos = 0;
+        let timerInterval;
+
+        function formatarTempo(segundos) {
+            const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const seg = (segundos % 60).toString().padStart(2, '0');
+            return `${min}:${seg}`;
+        }
+
+        function iniciarCronometro() {
+            timerInterval = setInterval(() => {
+                tempoSegundos++;
+                document.getElementById('cronometro').innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function pararCronometro() {
+            clearInterval(timerInterval);
+        }
+
+        function renderizarQuestoes() {
+            const container = document.getElementById('quiz-container');
+            const letras = ['A', 'B', 'C', 'D'];
+
+            questoes.forEach((q, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card';
+                qCard.id = `questao-${index}`;
+
+                let htmlContent = `
+                    <div class="question-header">
+                        <h2>Questão ${index + 1} de 10</h2>
+                        <span class="question-meta">Padrão FUNECE</span>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-container" id="options-${index}">
+                `;
+
+                q.alternativas.forEach((alt, i) => {
+                    htmlContent += `
+                        <div class="option" onclick="registrarResposta(${index}, ${i}, ${alt.correta})">
+                            <div class="option-letter">${letras[i]}</div>
+                            <div class="option-text">${alt.texto}</div>
+                        </div>
+                    `;
+                });
+
+                htmlContent += `
+                    </div>
+                    <div class="feedback" id="feedback-${index}">
+                        <h3>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Comentário da Banca
+                        </h3>
+                        <p>${q.feedback}</p>
+                    </div>
+                `;
+
+                qCard.innerHTML = htmlContent;
+                container.appendChild(qCard);
+            });
+        }
+
+        function registrarResposta(questaoIndex, altIndex, isCorreta) {
+            const optionsContainer = document.getElementById(`options-${questaoIndex}`);
+            
+            // Trava contra duplo clique
+            if (optionsContainer.classList.contains('respondida')) return;
+            optionsContainer.classList.add('respondida');
+
+            const alternativasDivs = optionsContainer.querySelectorAll('.option');
+
+            alternativasDivs.forEach((alt, idx) => {
+                // Desabilita opções para impedir novas escolhas
+                alt.classList.add('desabilitada');
+                
+                // Trata o clique do usuário
+                if (idx === altIndex) { 
+                    if (isCorreta) {
+                        alt.classList.add('correta');
+                        acertos++;
+                    } else {
+                        alt.classList.add('incorreta');
+                    }
+                }
+
+                // Revela sempre a verdadeira
+                if (questoes[questaoIndex].alternativas[idx].correta) {
+                    alt.classList.add('correta');
+                }
+            });
+
+            // Mostra o gabarito comentado
+            document.getElementById(`feedback-${questaoIndex}`).style.display = 'block';
+
+            // Atualiza progresso
+            answeredQuestions++;
+            document.getElementById('progresso').innerText = `${answeredQuestions}/10`;
+
+            // Verifica fim
+            if (answeredQuestions === questoes.length) {
+                finalizarProva();
+            }
+        }
+
+        function finalizarProva() {
+            pararCronometro();
+            
+            // Pausa sutil antes de abrir o modal final
+            setTimeout(() => {
+                document.getElementById('final-score').innerText = `${acertos}/10`;
+                document.getElementById('final-time').innerText = formatarTempo(tempoSegundos);
+                document.getElementById('end-screen').style.display = 'flex';
+            }, 1000); 
+        }
+
+        window.onload = () => {
+            renderizarQuestoes();
+            iniciarCronometro();
+        };
+    </script>
+</body>
+</html>

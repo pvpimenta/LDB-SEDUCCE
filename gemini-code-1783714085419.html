@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado SEDUC CE - LDB (Educação Infantil)</title>
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Azul Institucional FUNECE */
+            --secondary: #2563eb;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --success-bg: #dcfce7;
+            --success-border: #16a34a;
+            --success-text: #166534;
+            --error-bg: #fee2e2;
+            --error-border: #dc2626;
+            --error-text: #991b1b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+
+        /* Cabeçalho Fixo */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Container de Questões */
+        main {
+            max-width: 850px;
+            margin: 2.5rem auto;
+            padding: 0 1rem;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header h2 {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .question-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: var(--background);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .enunciado {
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+            color: #334155;
+        }
+
+        .itens-romanos {
+            margin: 1rem 0 1rem 2rem;
+            list-style-type: upper-roman;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 0.5rem;
+            padding-left: 0.5rem;
+        }
+
+        /* Alternativas */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.2rem;
+            background-color: var(--surface);
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .option:hover:not(.desabilitada) {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .option-letter {
+            font-weight: bold;
+            background-color: var(--background);
+            color: var(--text-muted);
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1.2rem;
+            border: 2px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        /* Classes Dinâmicas de Estado */
+        .option.correta {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success-border) !important;
+            color: var(--success-text) !important;
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--success-border);
+            color: white;
+            border-color: var(--success-border);
+        }
+
+        .option.incorreta {
+            background-color: var(--error-bg) !important;
+            border-color: var(--error-border) !important;
+            color: var(--error-text) !important;
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--error-border);
+            color: white;
+            border-color: var(--error-border);
+        }
+
+        .desabilitada {
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        /* Feedback do Professor */
+        .feedback {
+            display: none; /* Oculto por padrão, exigência da diretriz */
+            margin-top: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            background-color: #f0f9ff;
+            border-left: 5px solid #0284c7;
+            border-radius: 0 8px 8px 0;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .feedback h3 {
+            color: #0369a1;
+            font-size: 1.05rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback p {
+            font-size: 0.95rem;
+            color: #0c4a6e;
+            text-align: justify;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Final */
+        #end-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .end-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .end-card h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .end-card p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .score-highlight {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 1.5rem 0;
+            line-height: 1;
+        }
+
+        .btn-restart {
+            margin-top: 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            width: 100%;
+        }
+
+        .btn-restart:hover {
+            background-color: #152c6b;
+        }
+
+        @media(max-width: 640px) {
+            header { flex-direction: column; gap: 1rem; text-align: center; }
+            .status-panel { width: 100%; justify-content: center; }
+            .question-card { padding: 1.5rem 1rem; }
+            .option { padding: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado FUNECE/UECE - SEDUC CE</h1>
+            <p>Tema: LDB - Educação Infantil (Arts. 29 a 31)</p>
+        </div>
+        <div class="status-panel">
+            <div class="status-item">
+                <span>Progresso:</span>
+                <span id="progresso">0/10</span>
+            </div>
+            <div class="status-item">
+                <span>Tempo:</span>
+                <span id="cronometro">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- Injeção das questões via JS -->
+    </main>
+
+    <div id="end-screen">
+        <div class="end-card">
+            <h2>Simulado Concluído!</h2>
+            <p>Confira seu desempenho final na prova.</p>
+            <div class="score-highlight" id="final-score">0/10</div>
+            <p>Tempo total despendido: <strong id="final-time">00:00</strong></p>
+            <button class="btn-restart" onclick="location.reload()">Iniciar Nova Tentativa</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                id: 1,
+                enunciado: "À luz do Art. 29 da LDB, que trata das disposições gerais da Educação Infantil, assinale a alternativa que apresenta de forma precisa a finalidade e a natureza desta etapa da educação básica:",
+                alternativas: [
+                    { texto: "Substituir a ação da família no desenvolvimento físico e cognitivo da criança de até 5 (cinco) anos.", correta: false },
+                    { texto: "Garantir o desenvolvimento integral da criança de até 6 (seis) anos, com foco precípuo na alfabetização precoce.", correta: false },
+                    { texto: "Promover o desenvolvimento integral da criança de até 5 (cinco) anos, em seus aspectos físico, psicológico, intelectual e social, complementando a ação da família e da comunidade.", correta: true },
+                    { texto: "Atuar como etapa preparatória e eliminatória para o ensino fundamental, avaliando o desenvolvimento social de crianças de 4 a 6 anos.", correta: false }
+                ],
+                feedback: "<strong>A alternativa C é a correta.</strong> O Art. 29 estabelece expressamente que a educação infantil é a primeira etapa da educação básica, visando ao desenvolvimento integral da criança de até 5 anos (e não 6, como na alternativa B). Além disso, sua função é complementar (e não substituir, como na alternativa A) a ação da família e da comunidade."
+            },
+            {
+                id: 2,
+                enunciado: "O Art. 30 da Lei nº 9.394/96 estipula a oferta da educação infantil em creches e pré-escolas. Em relação ao recorte etário legalmente estabelecido para essas instituições, é correto afirmar que:",
+                alternativas: [
+                    { texto: "As creches destinam-se a crianças de até dois anos de idade, enquanto as pré-escolas atendem crianças de três a cinco anos.", correta: false },
+                    { texto: "As pré-escolas são exclusivas para crianças de 4 (quatro) a 5 (cinco) anos de idade, sendo as creches destinadas às crianças de até 3 (três) anos de idade.", correta: true },
+                    { texto: "Ambas as instituições atendem indistintamente crianças de até 5 anos, ficando a critério do respectivo sistema de ensino a separação etária.", correta: false },
+                    { texto: "As creches atendem crianças de até três anos, e as pré-escolas destinam-se a crianças de 4 (quatro) a 6 (seis) anos de idade.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B é a correta.</strong> Conforme o Art. 30, a oferta ocorre em creches para crianças de ATÉ 3 anos de idade (inciso I) e pré-escolas para crianças de 4 a 5 anos de idade (inciso II). A alternativa D erra ao estender a idade da pré-escola para 6 anos, fase que já corresponde ao ensino fundamental."
+            },
+            {
+                id: 3,
+                enunciado: "Avalie as proposições abaixo, considerando as regras comuns de organização da Educação Infantil dispostas no Art. 31 da LDB:<br><ul class='itens-romanos'><li>I. A avaliação far-se-á mediante acompanhamento e registro do desenvolvimento das crianças.</li><li>II. A avaliação na pré-escola possui o objetivo precípuo de promoção e classificação para o acesso ao ensino fundamental.</li><li>III. A carga horária mínima anual é de 800 (oitocentas) horas, distribuídas por um mínimo de 200 (duzentos) dias de trabalho educacional.</li><li>IV. É exigida a frequência mínima de 75% (setenta e cinco por cento) do total de horas para instituições de educação pré-escolar.</li></ul>Estão corretas apenas as proposições:",
+                alternativas: [
+                    { texto: "I e III.", correta: true },
+                    { texto: "II e IV.", correta: false },
+                    { texto: "I, II e III.", correta: false },
+                    { texto: "I, III e IV.", correta: false }
+                ],
+                feedback: "<strong>A alternativa A (I e III) é a correta.</strong> O item II está incorreto porque o Art. 31, inciso I, veda explicitamente o objetivo de promoção na educação infantil. O item IV está incorreto pois a frequência mínima exigida na educação pré-escolar é de 60% (Art. 31, IV), e não 75% (que é a regra para o Ensino Fundamental e Médio)."
+            },
+            {
+                id: 4,
+                enunciado: "Um dos aspectos centrais do regramento normativo da Educação Infantil concerne ao controle de frequência e à organização dos turnos de atendimento. Segundo a literalidade da LDB, assinale a alternativa correta:",
+                alternativas: [
+                    { texto: "O controle de frequência é obrigatório e idêntico para creches e pré-escolas, exigindo-se o mínimo legal de 60% de comparecimento em ambas.", correta: false },
+                    { texto: "O atendimento educacional à criança deverá ser de, no mínimo, 4 (quatro) horas diárias para o turno parcial e de 7 (sete) horas para a jornada integral.", correta: true },
+                    { texto: "A exigência de frequência mínima na instituição pré-escolar é de 75%, equiparando-se ao rigor exigido no Ensino Fundamental.", correta: false },
+                    { texto: "A jornada integral na educação infantil corresponde a, no mínimo, 8 (oito) horas diárias ininterruptas de trabalho educacional.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B é a correta.</strong> A redação reflete exatidão o Art. 31, inciso III. A alternativa A está incorreta porque o inciso IV especifica o controle de frequência pela instituição de educação 'pré-escolar' (não impondo a exigência legal de 60% às creches). A alternativa D erra ao citar 8 horas (a lei exige 7 horas para jornada integral)."
+            },
+            {
+                id: 5,
+                enunciado: "No tocante à Educação Infantil, julgue os itens a seguir de acordo com as disposições gerais e regras de organização estabelecidas na LDB:<br><ul class='itens-romanos'><li>I. Constitui-se como a primeira etapa da educação básica.</li><li>II. Sua finalidade é o desenvolvimento integral da criança em seus aspectos físico, psicológico, intelectual e social.</li><li>III. Em sua função social, substitui integralmente a ação da família para as crianças inseridas em jornada integral.</li><li>IV. A expedição de documentação atestando os processos de desenvolvimento da criança é obrigatória.</li></ul>Assinale a alternativa que contém a sequência correta de itens legalmente fundamentados:",
+                alternativas: [
+                    { texto: "I, II e III.", correta: false },
+                    { texto: "I, II e IV.", correta: true },
+                    { texto: "II, III e IV.", correta: false },
+                    { texto: "I, III e IV.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B (I, II e IV) é a correta.</strong> O item III é o único falso. A educação infantil, em qualquer modalidade (parcial ou integral), tem caráter COMPLEMENTAR à ação da família e da comunidade (Art. 29), jamais substitutivo. Os demais itens reproduzem fielmente os Arts. 29 e 31, inciso V."
+            },
+            {
+                id: 6,
+                enunciado: "O município de 'Nova Saber', ao elaborar o regimento escolar de sua rede municipal, estabeleceu uma diretriz exigindo o controle rigoroso de frequência nas creches e pré-escolas, determinando a reprovação de crianças que não atingirem 75% de presença anual, obstando seu ingresso no Ensino Fundamental. À luz rigorosa do Art. 31 da LDB, essa diretriz é:",
+                alternativas: [
+                    { texto: "Legal, haja vista que a LDB instituiu a reprovação por faltas em toda a Educação Básica como mecanismo de combate à evasão.", correta: false },
+                    { texto: "Ilegal, pois a LDB veda o objetivo de promoção na Educação Infantil e estabelece a exigência de frequência mínima de 60% focada nas pré-escolas.", correta: true },
+                    { texto: "Legal, desde que a avaliação de frequência esteja vinculada à testagem do desenvolvimento cognitivo da criança no final do ciclo.", correta: false },
+                    { texto: "Ilegal, pois as instituições de educação pré-escolar não exercem nenhum tipo de controle de frequência sobre seus matriculados.", correta: false }
+                ],
+                feedback: "<strong>A alternativa B é a correta.</strong> O município cometeu duas violações à LDB: 1) A avaliação na educação infantil é SEM objetivo de promoção, inclusive para o acesso ao ensino fundamental (Art. 31, I). 2) A frequência exigida para a educação pré-escolar é de 60% (Art. 31, IV) e não 75%."
+            },
+            {
+                id: 7,
+                enunciado: "A terminologia e as disposições métricas da LDB são extremamente precisas quanto à estruturação da Educação Infantil. Das opções abaixo, assinale a que NÃO encontra respaldo nas regras comuns do Art. 31:",
+                alternativas: [
+                    { texto: "Carga horária mínima anual de 800 (oitocentas) horas.", correta: false },
+                    { texto: "Distribuição da carga horária por um mínimo de 200 (duzentos) dias de trabalho educacional.", correta: false },
+                    { texto: "Avaliação mediante acompanhamento e registro do desenvolvimento das crianças, sem objetivo de promoção.", correta: false },
+                    { texto: "Controle de frequência exigido de forma unificada à creche e à pré-escola, com mínimo de 75% de presença.", correta: true }
+                ],
+                feedback: "<strong>A alternativa D é a correta (pois é a incorreta perante a lei).</strong> O Art. 31, inciso IV, restringe a obrigatoriedade da exigência legal da frequência mínima de 60% à 'instituição de educação pré-escolar', não a aplicando à creche no mesmo dispositivo, e o percentual é 60%, não 75%."
+            },
+            {
+                id: 8,
+                enunciado: "A avaliação na Educação Infantil, segundo os ditames da Lei nº 9.394/96, difere estruturalmente das diretrizes aplicadas ao Ensino Fundamental. Essa distinção de finalidade avaliativa materializa-se normativamente por meio:",
+                alternativas: [
+                    { texto: "Da inexistência de expedientes documentais formais na educação infantil, bastando o relato verbal contínuo aos responsáveis legais.", correta: false },
+                    { texto: "Do foco absoluto nos aspectos psicomotores, em detrimento dos intelectuais, visando unicamente à preparação física para o ensino fundamental.", correta: false },
+                    { texto: "Da expedição obrigatória de documentação que permita atestar os processos de desenvolvimento e aprendizagem da criança, destituída de caráter classificatório.", correta: true },
+                    { texto: "Da realização obrigatória de avaliações padronizadas e somativas nas pré-escolas para aferir a prontidão lógica e alfabética.", correta: false }
+                ],
+                feedback: "<strong>A alternativa C é a correta.</strong> Nos termos do Art. 31, incisos I e V, a avaliação ocorre sem o objetivo de promoção e a instituição deve expedir documentação que permita atestar os processos de desenvolvimento e aprendizagem. A alternativa A erra ao negar a existência de documentação. As alternativas B e D atribuem naturezas incompatíveis com a etapa."
+            },
+            {
+                id: 9,
+                enunciado: "Considere que um novo estabelecimento privado de ensino solicitou autorização ao sistema de ensino competente para ofertar Educação Infantil nas modalidades de turno parcial e jornada integral. Para estar em absoluta conformidade com o Art. 31, inciso III da LDB, o regimento do estabelecimento deverá assegurar uma carga horária diária mínima, respectivamente, de:",
+                alternativas: [
+                    { texto: "5 (cinco) horas para o turno parcial e 8 (oito) horas para a jornada integral.", correta: false },
+                    { texto: "4 (quatro) horas para o turno parcial e 6 (seis) horas para a jornada integral.", correta: false },
+                    { texto: "4 (quatro) horas para o turno parcial e 7 (sete) horas para a jornada integral.", correta: true },
+                    { texto: "3 (três) horas para o turno parcial e 7 (sete) horas para a jornada integral.", correta: false }
+                ],
+                feedback: "<strong>A alternativa C é a correta.</strong> O inciso III do Art. 31 da LDB é taxativo: o atendimento à criança deve ser de, no mínimo, 4 horas diárias para o turno parcial e de 7 horas para a jornada integral. Qualquer configuração abaixo disso inviabiliza o credenciamento ou funcionamento legal da instituição."
+            },
+            {
+                id: 10,
+                enunciado: "De acordo com o texto da LDB vigente, as instâncias e instituições que oferecem Educação Infantil assumem responsabilidades pedagógicas específicas. Sobre o ingresso no ensino fundamental a partir da trajetória na educação infantil, é correto deduzir normativamente que:",
+                alternativas: [
+                    { texto: "O acesso ao ensino fundamental é condicionado à apresentação da documentação expedida pela pré-escola atestando o pleno desenvolvimento intelectual da criança.", correta: false },
+                    { texto: "O acompanhamento e registro do desenvolvimento da criança na educação infantil possuem a premissa de avaliar a maturidade para ingresso na etapa subsequente.", correta: false },
+                    { texto: "A avaliação na educação infantil ocorrerá mediante registros contínuos, contudo, tais registros não carregam a finalidade de promoção, mesmo que seja para o acesso ao ensino fundamental.", correta: true },
+                    { texto: "O desempenho inferior a 60% na frequência escolar da pré-escola enseja a retenção compulsória da criança, postergando sua matrícula no ensino fundamental.", correta: false }
+                ],
+                feedback: "<strong>A alternativa C é a correta.</strong> Respalda-se estritamente no Art. 31, inciso I, que prevê a avaliação mediante acompanhamento sem objetivo de promoção, 'mesmo para o acesso ao ensino fundamental'. A LDB não condiciona a matrícula do EF à aprovação, retenção ou frequência na Educação Infantil (invalidando as opções A, B e D)."
+            }
+        ];
+
+        // Estado Global da Aplicação
+        let acertos = 0;
+        let respondidas = 0;
+        let tempoSegundos = 0;
+        let timerInterval;
+
+        // Utilitário de Tempo
+        function formatarTempo(segundos) {
+            const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const seg = (segundos % 60).toString().padStart(2, '0');
+            return `${min}:${seg}`;
+        }
+
+        // Controle do Cronômetro
+        function iniciarCronometro() {
+            timerInterval = setInterval(() => {
+                tempoSegundos++;
+                document.getElementById('cronometro').innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function pararCronometro() {
+            clearInterval(timerInterval);
+        }
+
+        // Renderizador do Simulado
+        function renderizarQuestoes() {
+            const container = document.getElementById('quiz-container');
+            const letras = ['A', 'B', 'C', 'D'];
+
+            questoes.forEach((q, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card';
+                qCard.id = `questao-${index}`;
+
+                let htmlContent = `
+                    <div class="question-header">
+                        <h2>Questão ${index + 1}</h2>
+                        <span class="question-meta">Nível: Médio-Difícil</span>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-container" id="options-${index}">
+                `;
+
+                q.alternativas.forEach((alt, i) => {
+                    htmlContent += `
+                        <div class="option" onclick="registrarResposta(${index}, ${i}, ${alt.correta})">
+                            <div class="option-letter">${letras[i]}</div>
+                            <div class="option-text">${alt.texto}</div>
+                        </div>
+                    `;
+                });
+
+                htmlContent += `
+                    </div>
+                    <div class="feedback" id="feedback-${index}">
+                        <h3>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            Comentário do Professor (Banca FUNECE)
+                        </h3>
+                        <p>${q.feedback}</p>
+                    </div>
+                `;
+
+                qCard.innerHTML = htmlContent;
+                container.appendChild(qCard);
+            });
+        }
+
+        // Lógica de Interação
+        function registrarResposta(questaoIndex, altIndex, isCorreta) {
+            const optionsContainer = document.getElementById(`options-${questaoIndex}`);
+            
+            // Trava contra duplo clique ou alteração de resposta
+            if (optionsContainer.classList.contains('respondida')) return;
+            optionsContainer.classList.add('respondida');
+
+            const alternativasDivs = optionsContainer.querySelectorAll('.option');
+
+            // Processa a validação visual
+            alternativasDivs.forEach((alt, idx) => {
+                alt.classList.add('desabilitada'); // Remove cursor e hover
+                
+                // Trata a alternativa clicada
+                if (idx === altIndex) { 
+                    if (isCorreta) {
+                        alt.classList.add('correta');
+                        acertos++;
+                    } else {
+                        alt.classList.add('incorreta');
+                    }
+                }
+
+                // Revela a correta sempre (mesmo se o usuário errou)
+                if (questoes[questaoIndex].alternativas[idx].correta) {
+                    alt.classList.add('correta');
+                }
+            });
+
+            // Mostra o comentário com animação fluida (display block)
+            document.getElementById(`feedback-${questaoIndex}`).style.display = 'block';
+
+            // Atualiza placar
+            respondidas++;
+            document.getElementById('progresso').innerText = `${respondidas}/10`;
+
+            // Verifica fim do simulado
+            if (respondidas === 10) {
+                finalizarProva();
+            }
+        }
+
+        // Lógica de Encerramento
+        function finalizarProva() {
+            pararCronometro(); // Para o relógio instantaneamente no último clique
+            
+            // Timeout sutil de 1 segundo para leitura da última resposta antes do modal cobrir a tela
+            setTimeout(() => {
+                document.getElementById('final-score').innerText = `${acertos}/10`;
+                document.getElementById('final-time').innerText = formatarTempo(tempoSegundos);
+                document.getElementById('end-screen').style.display = 'flex';
+            }, 1000);
+        }
+
+        // Inicialização
+        window.onload = () => {
+            renderizarQuestoes();
+            iniciarCronometro(); // Inicia assim que a página renderiza
+        };
+    </script>
+</body>
+</html>

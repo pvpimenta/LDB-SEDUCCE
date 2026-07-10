@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado SEDUC CE - FUNECE | Profissionais da Educação (LDB)</title>
+    <style>
+        :root {
+            --cor-primaria: #003366;
+            --cor-secundaria: #00509e;
+            --cor-fundo: #f4f7f6;
+            --cor-texto: #333;
+            --cor-acerto-bg: #d4edda;
+            --cor-acerto-borda: #28a745;
+            --cor-acerto-texto: #155724;
+            --cor-erro-bg: #f8d7da;
+            --cor-erro-borda: #dc3545;
+            --cor-erro-texto: #721c24;
+            --cor-hover: #e9ecef;
+            --cor-borda: #ced4da;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+
+        /* Header e Painel de Status */
+        header {
+            background-color: var(--cor-primaria);
+            color: white;
+            padding: 20px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-titulos h1 {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .header-titulos p {
+            font-size: 0.9rem;
+            color: #d1e0e0;
+        }
+
+        .painel-status {
+            display: flex;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Container Principal */
+        main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Cartões de Questões */
+        .questao-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--cor-borda);
+            transition: opacity 0.3s ease;
+        }
+
+        .questao-cabecalho {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .questao-numero {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--cor-secundaria);
+            white-space: nowrap;
+            margin-right: 15px;
+        }
+
+        .linha-divisoria {
+            flex-grow: 1;
+            height: 1px;
+            background-color: var(--cor-borda);
+        }
+
+        .enunciado {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        .itens-romanos {
+            margin: 15px 0 20px 30px;
+            list-style: none;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .itens-romanos li::before {
+            content: "•";
+            color: var(--cor-secundaria);
+            position: absolute;
+            left: -20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Alternativas */
+        .alternativas-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .alternativa {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid var(--cor-borda);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+            font-size: 1.05rem;
+        }
+
+        .alternativa:hover:not(.desabilitada) {
+            border-color: var(--cor-secundaria);
+            background-color: var(--cor-hover);
+        }
+
+        .letra-alternativa {
+            font-weight: bold;
+            margin-right: 15px;
+            background: var(--cor-fundo);
+            min-width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--cor-primaria);
+            border: 1px solid var(--cor-borda);
+        }
+
+        /* Estados das Alternativas */
+        .alternativa.correta {
+            background-color: var(--cor-acerto-bg);
+            border-color: var(--cor-acerto-borda);
+            color: var(--cor-acerto-texto);
+        }
+
+        .alternativa.correta .letra-alternativa {
+            background-color: var(--cor-acerto-borda);
+            color: white;
+            border-color: var(--cor-acerto-borda);
+        }
+
+        .alternativa.incorreta {
+            background-color: var(--cor-erro-bg);
+            border-color: var(--cor-erro-borda);
+            color: var(--cor-erro-texto);
+        }
+
+        .alternativa.incorreta .letra-alternativa {
+            background-color: var(--cor-erro-borda);
+            color: white;
+            border-color: var(--cor-erro-borda);
+        }
+
+        .alternativa.desabilitada {
+            pointer-events: none;
+        }
+
+        .questao-card.respondida .alternativa:not(.correta):not(.incorreta) {
+            opacity: 0.6;
+            filter: grayscale(100%);
+        }
+
+        /* Comentário do Professor */
+        .comentario-professor {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #e3f2fd;
+            border-left: 5px solid #1976d2;
+            border-radius: 0 8px 8px 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .comentario-professor h4 {
+            color: #0d47a1;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .comentario-professor p {
+            font-size: 1rem;
+            text-align: justify;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal de Resultado Final */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h2 {
+            color: var(--cor-primaria);
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .placar-box {
+            background: var(--cor-fundo);
+            border: 2px solid var(--cor-borda);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .pontuacao-final {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--cor-acerto-borda);
+            line-height: 1;
+        }
+
+        .tempo-final {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            color: #555;
+        }
+
+        .btn-reiniciar {
+            background: var(--cor-primaria);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .btn-reiniciar:hover {
+            background: var(--cor-secundaria);
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; text-align: center; gap: 15px; }
+            .painel-status { justify-content: center; width: 100%; }
+            .questao-card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-titulos">
+            <h1>Simulado FUNECE - SEDUC CE</h1>
+            <p>LDB (Arts. 61 a 67) - Profissionais da Educação</p>
+        </div>
+        <div class="painel-status">
+            <div class="status-item" title="Progresso">
+                <span>📝</span> <span id="texto-progresso">0/10</span>
+            </div>
+            <div class="status-item" title="Tempo de Prova">
+                <span>⏱️</span> <span id="texto-cronometro">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="container-simulado">
+        <!-- As questões serão renderizadas aqui via JavaScript -->
+    </main>
+
+    <div class="modal-overlay" id="modal-resultado">
+        <div class="modal-content">
+            <h2>Simulado Concluído!</h2>
+            <div class="placar-box">
+                <div class="pontuacao-final"><span id="pontuacao-final-num">0</span>/10</div>
+                <div class="tempo-final">Tempo despendido: <strong id="tempo-final-str">00:00</strong></div>
+            </div>
+            <button class="btn-reiniciar" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                enunciado: "No tocante à conceituação legal dos profissionais da educação escolar básica insculpida no art. 61 da Lei de Diretrizes e Bases da Educação Nacional (LDB), analise os itens a seguir:<br><ul class='itens-romanos'><li>I. São considerados profissionais da educação os trabalhadores portadores de diploma de curso técnico ou superior em área pedagógica ou afim, desde que estejam em efetivo exercício.</li><li>II. O notório saber, reconhecido pelos respectivos sistemas de ensino, qualifica o profissional para atuar em qualquer etapa e componente curricular da educação básica, suprindo integralmente a exigência de licenciatura.</li><li>III. Os profissionais graduados que tenham feito complementação pedagógica, conforme disposto pelo CNE, são formalmente enquadrados como profissionais da educação escolar básica.</li></ul>É correto o que se afirma em:",
+                opcoes: [
+                    "I e II, apenas.",
+                    "I e III, apenas.",
+                    "II e III, apenas.",
+                    "I, II e III."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B (I e III, apenas).</strong> O item II está incorreto. A admissão de profissionais com 'notório saber' é extremamente restrita na LDB (art. 61, inciso IV). Ela destina-se <em>exclusivamente</em> para ministrar conteúdos de áreas afins à sua formação para atender ao itinerário formativo técnico e profissional do Ensino Médio (inciso V do caput do art. 36), e não em 'qualquer etapa ou componente'."
+            },
+            {
+                enunciado: "De acordo com as recentes inserções normativas na LDB (Leis nº 14.679/2023 e nº 15.326/2026), a formação dos profissionais da educação e o enquadramento na carreira do magistério sofreram importantes acréscimos. Assinale a alternativa que corrobora estritamente a referida legislação.",
+                opcoes: [
+                    "Os profissionais que exercem função docente na educação infantil são enquadrados na carreira do magistério independentemente da designação do cargo, desde que tenham formação no magistério ou curso superior e sejam aprovados em concurso público.",
+                    "A formação dos profissionais da educação prescinde de experiências em outras atividades, concentrando-se com exclusividade na associação entre teorias e práticas acadêmicas.",
+                    "A capacitação para identificação de maus-tratos e violência contra crianças e adolescentes é obrigatória apenas para os gestores escolares, não compondo o rol de fundamentos formativos de todos os docentes.",
+                    "A legislação delega inteiramente aos Municípios o critério de decidir se professores de educação infantil sem concurso público poderão integrar os quadros definitivos do magistério."
+                ],
+                correta: 0,
+                comentario: "<strong>Gabarito: Letra A.</strong> A alternativa reflete ipsis litteris o disposto no § 2º do art. 61 da LDB, inserido pela Lei 15.326/2026. A letra B é falsa (o inciso III do §1º valoriza experiências anteriores). A letra C é falsa (o inciso IV do §1º inclui a proteção de direitos no apoio à formação de *todos* os profissionais do caput). A letra D contraria a exigência de concurso público."
+            },
+            {
+                enunciado: "Sobre a formação de docentes para atuar na educação básica e as diretrizes estabelecidas no art. 62 da LDB, julgue as assertivas a seguir:<br><ul class='itens-romanos'><li>I. A formação de docentes para a educação básica far-se-á, em regra, em nível superior, em curso de licenciatura plena.</li><li>II. É vedada, em caráter absoluto, a admissão da formação em nível médio (modalidade normal) para o exercício do magistério, face à exigência peremptória de nível superior.</li><li>III. Os currículos dos cursos de formação de docentes terão por referência mandatória a Base Nacional Comum Curricular (BNCC).</li></ul>Está(ão) correta(s):",
+                opcoes: [
+                    "I, apenas.",
+                    "I e III, apenas.",
+                    "II e III, apenas.",
+                    "I, II e III."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B (I e III, apenas).</strong> O item II está incorreto. O caput do art. 62 estabelece claramente que a formação em nível superior é a regra, contudo, <em>admite-se</em> como formação mínima para o exercício do magistério na educação infantil e nos 5 primeiros anos do ensino fundamental a formação em nível médio na modalidade normal."
+            },
+            {
+                enunciado: "A LDB institui regras sobre a utilização de modalidades de ensino na formação de professores. Conforme os parágrafos 2º e 3º do art. 62, assinale a opção que distingue corretamente a aplicação da Educação a Distância (EaD) na formação inicial e continuada.",
+                opcoes: [
+                    "Tanto a formação inicial quanto a continuada deverão ser ofertadas, prioritariamente, por meio da Educação a Distância, objetivando a otimização de recursos estatais.",
+                    "A formação inicial dará preferência ao ensino presencial, subsidiariamente utilizando EaD; já a formação continuada poderá utilizar recursos e tecnologias da EaD de forma plena.",
+                    "A formação continuada é restrita à modalidade presencial para assegurar a prática docente; a EaD é permitida apenas nos dois primeiros semestres da formação inicial.",
+                    "A legislação é silente sobre a prevalência de modalidades, delegando tal regulação à discricionariedade absoluta das Instituições de Ensino Superior."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> Segundo o § 3º do art. 62, a formação inicial dará <em>preferência ao ensino presencial</em> (usando EaD subsidiariamente). Já o § 2º autoriza explicitamente que a formação continuada e capacitação poderão utilizar recursos da EaD, sem impor a preferência pelo presencial neste caso específico."
+            },
+            {
+                enunciado: "O art. 62-B da LDB determina a criação de processo seletivo diferenciado para o acesso a cursos superiores de pedagogia e licenciatura, visando à regularização da formação de docentes em exercício. Têm o direito de pleitear esse acesso os professores das redes públicas que atendam, CUMULATIVAMENTE, aos seguintes requisitos:",
+                opcoes: [
+                    "Haver ingressado por concurso público, possuir no mínimo cinco anos de efetivo exercício da profissão e não ser portador de diploma de graduação.",
+                    "Haver ingressado por contrato temporário ou concurso público, possuir no mínimo três anos de docência e atuar nos anos iniciais do ensino fundamental.",
+                    "Haver ingressado por concurso público, ter pelo menos três anos de exercício da profissão e não ser portador de diploma de graduação.",
+                    "Haver ingressado por processo seletivo simplificado, ter pelo menos três anos ininterruptos de docência exclusiva e não ser portador de licenciatura plena."
+                ],
+                correta: 2,
+                comentario: "<strong>Gabarito: Letra C.</strong> O art. 62-B, § 1º, é taxativo quanto aos requisitos cumulativos: 1) Ingresso por concurso público; 2) Pelo menos três anos de exercício da profissão; 3) Não serem portadores de diploma de graduação."
+            },
+            {
+                enunciado: "De acordo com as prescrições referentes à capacitação e atuação de especialistas em educação, assinale a assertiva juridicamente alinhada ao texto do art. 64 da LDB, que dispõe sobre a formação de profissionais para administração, planejamento, inspeção, supervisão e orientação educacional para a educação básica.",
+                opcoes: [
+                    "Deverá ocorrer, obrigatoriamente, em cursos de especialização lato sensu atrelados aos Conselhos Estaduais de Educação.",
+                    "Dará-se-á em cursos de graduação em pedagogia ou em nível de pós-graduação, a critério da instituição de ensino, garantida a base comum nacional.",
+                    "Realizar-se-á de forma exclusiva nos Institutos Superiores de Educação, vedada a oferta dessa formação por faculdades isoladas de pedagogia.",
+                    "Exigirá o título acadêmico prévio de Mestre ou Doutor em Políticas Públicas para o exercício da função de inspeção escolar nas redes públicas."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> Transcrição literal do art. 64 da LDB: 'A formação de profissionais de educação para administração, planejamento, inspeção, supervisão e orientação educacional para a educação básica, será feita em cursos de graduação em pedagogia ou em nível de pós-graduação, a critério da instituição de ensino, garantida, nesta formação, a base comum nacional'."
+            },
+            {
+                enunciado: "Em consonância com a Lei de Diretrizes e Bases da Educação Nacional, a carga horária prática na formação docente possui caráter impositivo. Conforme o art. 65 da referida lei, a formação docente, EXCETO para a educação superior, incluirá prática de ensino de, no mínimo:",
+                opcoes: [
+                    "Quatrocentas horas.",
+                    "Trezentas horas.",
+                    "Duzentas e cinquenta horas.",
+                    "Quinhentas horas."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> O art. 65 determina, de forma explícita e direta: 'A formação docente, exceto para a educação superior, incluirá prática de ensino de, no mínimo, trezentas horas'."
+            },
+            {
+                enunciado: "A valorização dos profissionais da educação é um pilar estruturante assegurado no art. 67 da LDB. Segundo este dispositivo, os sistemas de ensino promoverão a referida valorização, assegurando, inclusive nos termos dos planos de carreira do magistério público, as seguintes garantias, EXCETO:",
+                opcoes: [
+                    "Ingresso exclusivamente por concurso público de provas e títulos.",
+                    "Piso salarial profissional e aperfeiçoamento profissional continuado.",
+                    "Progressão funcional baseada, entre outros critérios, na titulação ou habilitação e na avaliação de desempenho.",
+                    "Licenciamento compulsório não remunerado após cada decênio de serviço para fins de aperfeiçoamento em nível de pós-graduação estrito sensu."
+                ],
+                correta: 3,
+                comentario: "<strong>Gabarito: Letra D.</strong> A lei garante aperfeiçoamento continuado, inclusive com licenciamento periódico *remunerado* para esse fim (art. 67, inciso II), e não compulsório ou não remunerado. As alternativas A, B e C refletem os incisos I, II, III e IV do art. 67."
+            },
+            {
+                enunciado: "O art. 67, § 2º, delimita juridicamente o conceito de 'funções de magistério' para os efeitos previstos na Constituição Federal (como o cômputo para aposentadoria especial). Nos termos da LDB, são consideradas funções de magistério as exercidas por professores e especialistas em educação, em estabelecimento de educação básica, abrangendo, além da docência:",
+                opcoes: [
+                    "Exclusivamente as atividades de direção de unidade escolar.",
+                    "A direção de unidade escolar, a coordenação e o assessoramento pedagógico.",
+                    "A gestão administrativa municipal, a tutoria EaD e a secretaria escolar.",
+                    "O assessoramento jurídico-educacional e a inspeção contábil do sistema de ensino."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> O § 2º do art. 67 estipula que são funções de magistério, além da docência, 'as de direção de unidade escolar e as de coordenação e assessoramento pedagógico'."
+            },
+            {
+                enunciado: "As normativas que regulam a preparação para o exercício do magistério superior (art. 66) possuem especificidades frente à educação básica. Sobre o magistério superior, analise as afirmativas e aponte a alternativa congruente com a LDB:<br><ul class='itens-romanos'><li>I. A preparação far-se-á em nível de pós-graduação, prioritariamente em programas de mestrado e doutorado.</li><li>II. A LDB veda absolutamente o exercício da docência no ensino superior por profissionais sem título de mestre ou doutor expedido no Brasil.</li><li>III. O notório saber, reconhecido por universidade com curso de doutorado em área afim, poderá suprir a exigência de título acadêmico.</li></ul>Estão corretas as afirmativas:",
+                opcoes: [
+                    "I e II, apenas.",
+                    "I e III, apenas.",
+                    "II e III, apenas.",
+                    "I, II e III."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B (I e III, apenas).</strong> O item II está incorreto justamente devido à exceção contemplada no item III. O parágrafo único do art. 66 permite que o 'notório saber', desde que formalmente reconhecido por universidade que possua curso de doutorado em área afim, supra a ausência do título acadêmico formal para atuar no magistério superior."
+            }
+        ];
+
+        let questaoAtual = 0;
+        let acertos = 0;
+        let tempoSegundos = 0;
+        let timer;
+        let respondidas = 0;
+        const totalQuestoes = questoes.length;
+
+        const container = document.getElementById('container-simulado');
+        const txtProgresso = document.getElementById('texto-progresso');
+        const txtCronometro = document.getElementById('texto-cronometro');
+        const modalResultado = document.getElementById('modal-resultado');
+
+        function formatarTempo(segundos) {
+            const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const seg = (segundos % 60).toString().padStart(2, '0');
+            return `${min}:${seg}`;
+        }
+
+        function iniciarCronometro() {
+            timer = setInterval(() => {
+                tempoSegundos++;
+                txtCronometro.innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function pararCronometro() {
+            clearInterval(timer);
+        }
+
+        function renderizarQuestoes() {
+            const letras = ['A', 'B', 'C', 'D'];
+            
+            questoes.forEach((q, indexQ) => {
+                const card = document.createElement('div');
+                card.className = 'questao-card';
+                card.id = `questao-${indexQ}`;
+
+                let htmlAlternativas = '';
+                q.opcoes.forEach((opcao, indexOpt) => {
+                    htmlAlternativas += `
+                        <div class="alternativa" id="opt-${indexQ}-${indexOpt}" onclick="selecionarResposta(${indexQ}, ${indexOpt})">
+                            <div class="letra-alternativa">${letras[indexOpt]}</div>
+                            <div class="texto-alternativa">${opcao}</div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="questao-cabecalho">
+                        <div class="questao-numero">Questão ${indexQ + 1}</div>
+                        <div class="linha-divisoria"></div>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="alternativas-container" id="container-opts-${indexQ}">
+                        ${htmlAlternativas}
+                    </div>
+                    <div class="comentario-professor" id="comentario-${indexQ}">
+                        <h4>💡 Comentário do Professor</h4>
+                        <p>${q.comentario}</p>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        window.selecionarResposta = function(indexQ, indexOptSelecionada) {
+            const cardQuestao = document.getElementById(`questao-${indexQ}`);
+            
+            if (cardQuestao.classList.contains('respondida')) return;
+
+            cardQuestao.classList.add('respondida');
+            respondidas++;
+            txtProgresso.innerText = `${respondidas}/${totalQuestoes}`;
+
+            const indexCorreta = questoes[indexQ].correta;
+            const acertou = indexOptSelecionada === indexCorreta;
+
+            if (acertou) acertos++;
+
+            // Aplicar classes visuais e desabilitar
+            const alternativasDOM = document.querySelectorAll(`#container-opts-${indexQ} .alternativa`);
+            alternativasDOM.forEach((div, index) => {
+                div.classList.add('desabilitada');
+                
+                if (index === indexCorreta) {
+                    div.classList.add('correta');
+                } else if (index === indexOptSelecionada && !acertou) {
+                    div.classList.add('incorreta');
+                }
+            });
+
+            // Exibir comentário
+            const boxComentario = document.getElementById(`comentario-${indexQ}`);
+            boxComentario.style.display = 'block';
+
+            // Checar conclusão
+            if (respondidas === totalQuestoes) {
+                finalizarSimulado();
+            }
+        };
+
+        function finalizarSimulado() {
+            pararCronometro();
+            setTimeout(() => {
+                document.getElementById('pontuacao-final-num').innerText = acertos;
+                document.getElementById('tempo-final-str').innerText = formatarTempo(tempoSegundos);
+                modalResultado.style.display = 'flex';
+            }, 800); // pequeno atraso para ver a resposta final antes do modal pular na tela
+        }
+
+        // Inicialização
+        window.onload = () => {
+            renderizarQuestoes();
+            iniciarCronometro();
+        };
+    </script>
+</body>
+</html>

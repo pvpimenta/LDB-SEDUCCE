@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Simulados SEDUC CE</title>
+    <style>
+        :root {
+            --primary-color: #0f172a;
+            --secondary-color: #3b82f6;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .grid-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-top: 4px solid var(--secondary-color);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .card a {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .card a:hover {
+            background-color: #2563eb;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Plataforma de Simulados</h1>
+        <p>SEDUC CE - Banca FUNECE (Foco em LDB)</p>
+    </header>
+
+    <div class="container">
+        <div class="grid-dashboard">
+            <div class="card">
+                <h2>LDB: Títulos I, II e III</h2>
+                <p>Simulado abrangendo os princípios e fins da educação nacional.</p>
+                <a href="gemini-code-1783708120625.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>LDB: Título IV</h2>
+                <p>Simulado focado na Organização da Educação Nacional.</p>
+                <a href="gemini-code-1783709072689.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>LDB: Geral (FUNECE)</h2>
+                <p>Simulado geral com foco no perfil de cobrança da banca FUNECE/UECE.</p>
+                <a href="gemini-code-1783710552231.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Educação Infantil</h2>
+                <p>Simulado focado nas diretrizes da LDB para a Educação Infantil.</p>
+                <a href="gemini-code-1783714085419.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Ensino Fundamental</h2>
+                <p>Simulado focado nas diretrizes da LDB para o Ensino Fundamental.</p>
+                <a href="gemini-code-1783714221912.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Ensino Médio</h2>
+                <p>Simulado atualizado sobre o Ensino Médio segundo a LDB.</p>
+                <a href="gemini-code-1783714329345.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Educação Profissional Técnica</h2>
+                <p>Diretrizes para Educação Profissional Técnica de Nível Médio.</p>
+                <a href="gemini-code-1783714402996.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>EJA (Jovens e Adultos)</h2>
+                <p>Questões voltadas para a Educação de Jovens e Adultos.</p>
+                <a href="gemini-code-1783714754755.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Educação Profissional e Tecnológica</h2>
+                <p>Regras e estruturação da Educação Profissional e Tecnológica na LDB.</p>
+                <a href="gemini-code-1783714860138.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Educação Superior</h2>
+                <p>Testes voltados para o capítulo de Educação Superior da LDB.</p>
+                <a href="gemini-code-1783714944792.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Educação Especial</h2>
+                <p>Modalidade de Educação Especial, inclusão e diretrizes.</p>
+                <a href="gemini-code-1783715052399.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Educação Bilíngue de Surdos</h2>
+                <p>Nova modalidade inserida recentemente na LDB.</p>
+                <a href="gemini-code-1783715196772.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Profissionais da Educação</h2>
+                <p>Formação, valorização e plano de carreira docente segundo a LDB.</p>
+                <a href="gemini-code-1783715362994.html">Acessar Simulado</a>
+            </div>
+
+            <div class="card">
+                <h2>Recursos Financeiros</h2>
+                <p>Financiamento da educação, manutenção e desenvolvimento do ensino.</p>
+                <a href="gemini-code-1783715602827.html">Acessar Simulado</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Plataforma de Estudos LDB - SEDUC CE. Todos os direitos reservados.</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado FUNECE - SEDUC CE | Educação Superior (LDB)</title>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --text-color: #2d3748;
+            --correct-bg: #d1fae5;
+            --correct-border: #10b981;
+            --correct-text: #065f46;
+            --incorrect-bg: #fee2e2;
+            --incorrect-border: #ef4444;
+            --incorrect-text: #991b1b;
+            --feedback-bg: #ebf8ff;
+            --feedback-border: #3182ce;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        .stats-panel {
+            display: flex;
+            gap: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        main {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .question-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-number {
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question-number::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .enunciado {
+            font-size: 1.05rem;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        .itens-julgamento {
+            margin: 15px 0 20px 20px;
+            list-style: none;
+        }
+
+        .itens-julgamento li {
+            margin-bottom: 10px;
+        }
+
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            font-size: 1rem;
+        }
+
+        .option:hover {
+            border-color: var(--secondary-color);
+            background: #f7fafc;
+        }
+
+        .option-letter {
+            font-weight: bold;
+            margin-right: 15px;
+            background: #edf2f7;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--primary-color);
+            flex-shrink: 0;
+        }
+
+        /* Estados de Resposta */
+        .option.correct {
+            background-color: var(--correct-bg);
+            border-color: var(--correct-border);
+            color: var(--correct-text);
+        }
+
+        .option.correct .option-letter {
+            background-color: var(--correct-border);
+            color: white;
+        }
+
+        .option.incorrect {
+            background-color: var(--incorrect-bg);
+            border-color: var(--incorrect-border);
+            color: var(--incorrect-text);
+        }
+
+        .option.incorrect .option-letter {
+            background-color: var(--incorrect-border);
+            color: white;
+        }
+
+        .option.disabled {
+            pointer-events: none;
+        }
+
+        .question-card.answered .option:not(.correct):not(.incorrect) {
+            opacity: 0.6;
+        }
+
+        /* Comentário */
+        .feedback-box {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background-color: var(--feedback-bg);
+            border-left: 5px solid var(--feedback-border);
+            border-radius: 0 8px 8px 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .feedback-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feedback-box p {
+            font-size: 0.95rem;
+            text-align: justify;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Final */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--correct-border);
+            margin: 20px 0;
+        }
+
+        .time-display {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 30px;
+        }
+
+        .btn-restart {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-restart:hover {
+            background: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            .question-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado FUNECE - SEDUC CE</h1>
+            <p>Conhecimentos Pedagógicos e Legislação | Educação Superior (Arts. 43 ao 57 da LDB)</p>
+        </div>
+        <div class="stats-panel">
+            <div id="progress-container">📝 <span id="progress-text">0/10</span></div>
+            <div id="timer-container">⏱️ <span id="time-text">00:00</span></div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- As questões serão injetadas via JavaScript aqui -->
+    </main>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>Simulado Concluído!</h2>
+            <p>Seu desempenho final:</p>
+            <div class="score-display"><span id="final-score">0</span>/10</div>
+            <div class="time-display">Tempo total de prova: <strong id="final-time">00:00</strong></div>
+            <button class="btn-restart" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                enunciado: "De acordo com o art. 43 da Lei de Diretrizes e Bases da Educação Nacional (LDB - Lei nº 9.394/1996), a educação superior tem diversas finalidades legais. Assinale a alternativa que <strong>NÃO</strong> constitui uma finalidade da educação superior expressa no referido artigo:",
+                opcoes: [
+                    "Suscitar o desejo permanente de aperfeiçoamento cultural e profissional e possibilitar a correspondente concretização.",
+                    "Promover a extensão, aberta à participação da população, visando à difusão das conquistas e benefícios da criação cultural e da pesquisa.",
+                    "Atuar em favor da universalização e do aprimoramento da educação superior privada, mediante a concessão de bolsas parciais ou integrais.",
+                    "Estimular o conhecimento dos problemas do mundo presente, em particular os nacionais e regionais, prestando serviços à comunidade."
+                ],
+                correta: 2,
+                comentario: "Gabarito: C. A alternativa incorreta afirma que a finalidade seria a universalização da 'educação superior privada'. Segundo o inciso VIII do art. 43 da LDB, a finalidade é atuar em favor da universalização e do aprimoramento da <strong>educação básica</strong>, mediante a formação de profissionais, pesquisas pedagógicas e extensão."
+            },
+            {
+                enunciado: "Com fulcro no art. 44 da LDB, que trata da abrangência dos cursos e programas da educação superior, analise as afirmativas a seguir:<br><ul class='itens-julgamento'><li>I. Os cursos sequenciais por campo de saber são abertos a candidatos que atendam aos requisitos da instituição, desde que tenham concluído o ensino médio ou equivalente.</li><li>II. Os cursos de graduação são abertos a candidatos que tenham concluído o ensino médio ou equivalente e tenham sido classificados em processo seletivo.</li><li>III. Os programas de mestrado e doutorado são restritos a candidatos que já possuam, obrigatoriamente, título de especialização prévia.</li><li>IV. Os cursos de extensão são abertos a candidatos que atendam aos requisitos estabelecidos em cada caso pelas instituições de ensino, independentemente de estarem cursando a graduação.</li></ul>Estão corretas apenas as afirmativas:",
+                opcoes: [
+                    "I, II e IV.",
+                    "II e III.",
+                    "I e III.",
+                    "I, II, III e IV."
+                ],
+                correta: 0,
+                comentario: "Gabarito: A. O item III está incorreto pois a LDB (art. 44, inciso III) afirma que os cursos de pós-graduação (mestrado, doutorado, especialização, etc.) são abertos a candidatos 'diplomados em cursos de graduação', não exigindo título de especialização prévio para ingresso no mestrado/doutorado. Os itens I, II e IV reproduzem fielmente os incisos I, II e IV do art. 44."
+            },
+            {
+                enunciado: "O § 2º do art. 44 da LDB estabelece um critério de prioridade de matrícula no caso de empate no processo seletivo de acesso aos cursos de graduação (vestibular/Enem) nas instituições <strong>públicas</strong> de ensino superior. Segundo a norma, essa prioridade será concedida ao candidato que comprove ter:",
+                opcoes: [
+                    "Idade mais elevada, sendo dada preferência absoluta aos maiores de sessenta anos.",
+                    "Cursado integralmente o ensino médio em escolas públicas brasileiras.",
+                    "Renda familiar inferior a dez salários mínimos, ou ao de menor renda familiar, quando mais de um candidato preencher o critério inicial.",
+                    "A residência fixada há pelo menos cinco anos no município sede da instituição de ensino."
+                ],
+                correta: 2,
+                comentario: "Gabarito: C. A LDB é taxativa no art. 44, § 2º: 'No caso de empate no processo seletivo, as instituições públicas de ensino superior darão prioridade de matrícula ao candidato que comprove ter renda familiar inferior a dez salários mínimos, ou ao de menor renda familiar, quando mais de um candidato preencher o critério inicial'."
+            },
+            {
+                enunciado: "Acerca da regulação, avaliação e credenciamento de cursos e instituições de educação superior (art. 46 da LDB), julgue os itens a seguir e assinale a alternativa correta.",
+                opcoes: [
+                    "O credenciamento de instituições tem prazo indeterminado, desde que a instituição mantenha conceito máximo na primeira avaliação.",
+                    "Em caso de deficiências, a instituição pública sofrerá descredenciamento imediato, sem período de saneamento.",
+                    "No caso de instituição privada, o processo de reavaliação poderá resultar em redução de vagas autorizadas e em suspensão temporária de novos ingressos.",
+                    "É vedado ao Ministério da Educação comutar as penalidades aplicadas por outras medidas, visando proteger a autonomia universitária."
+                ],
+                correta: 2,
+                comentario: "Gabarito: C. O § 3º do art. 46 prevê exatamente que, para instituições privadas, o processo pode resultar em redução de vagas e suspensão de novos ingressos. A letra A é falsa (prazos são limitados, art. 46 caput). A letra B é falsa (sempre há prazo de saneamento, § 1º). A letra D é falsa (o § 4º faculta ao MEC comutar penalidades com vistas a resguardar interesses dos estudantes)."
+            },
+            {
+                enunciado: "O calendário e a duração do ano letivo na educação superior possuem diretrizes próprias estipuladas pelo art. 47 da LDB. A respeito do ano letivo regular, é correto afirmar que este:",
+                opcoes: [
+                    "Independe do ano civil e tem, no mínimo, duzentos dias de trabalho acadêmico efetivo, incluído o tempo reservado aos exames finais.",
+                    "Independe do ano civil e tem, no mínimo, duzentos dias de trabalho acadêmico efetivo, excluído o tempo reservado aos exames finais, quando houver.",
+                    "Deve coincidir rigorosamente com o ano civil, garantindo o mínimo de cento e oitenta dias de efetivo trabalho acadêmico.",
+                    "Possui duração variável a critério do colegiado, desde que não seja inferior a duzentos e vinte dias letivos anuais."
+                ],
+                correta: 1,
+                comentario: "Gabarito: B. Conforme o caput do art. 47 da LDB: 'Na educação superior, o ano letivo regular, independente do ano civil, tem, no mínimo, duzentos dias de trabalho acadêmico efetivo, <strong>excluído</strong> o tempo reservado aos exames finais, quando houver'. Bancas costumam trocar 'excluído' por 'incluído' para confundir o candidato."
+            },
+            {
+                enunciado: "Os alunos com elevado nível de proficiência em seus cursos de graduação possuem prerrogativas garantidas em lei. O art. 47, § 2º, estabelece que os alunos que tenham extraordinário aproveitamento nos estudos:",
+                opcoes: [
+                    "Poderão ter abreviada a duração dos seus cursos, mediante provas e outros instrumentos aplicados por banca examinadora especial.",
+                    "Ficarão isentos da frequência obrigatória, exceto nas disciplinas de estágio supervisionado e práticas laboratoriais.",
+                    "Receberão bolsa de produtividade acadêmica, condicionada à manutenção de coeficiente de rendimento máximo.",
+                    "Poderão requerer o diploma de forma imediata, dispensados de quaisquer avaliações adicionais pelas bancas."
+                ],
+                correta: 0,
+                comentario: "Gabarito: A. A redação do § 2º do art. 47 determina que alunos com extraordinário aproveitamento nos estudos, demonstrado por provas e instrumentos de banca examinadora especial, poderão ter <strong>abreviada a duração dos seus cursos</strong>, de acordo com as normas dos sistemas de ensino."
+            },
+            {
+                enunciado: "No tocante à validade e ao registro de diplomas na educação superior e os decorrentes acordos internacionais (art. 48 da LDB), assinale a assertiva juridicamente correta:",
+                opcoes: [
+                    "Os diplomas expedidos por instituições não universitárias possuem validade restrita ao estado da Federação onde foram emitidos.",
+                    "Os diplomas de graduação expedidos por universidades estrangeiras poderão ser revalidados por qualquer faculdade particular brasileira.",
+                    "Os diplomas de Mestrado expedidos por universidades estrangeiras só poderão ser reconhecidos por universidades que possuam pós-graduação reconhecida e avaliada, na mesma área e em nível equivalente ou superior.",
+                    "O reconhecimento de diplomas estrangeiros independe de acordos internacionais de reciprocidade e equiparação."
+                ],
+                correta: 2,
+                comentario: "Gabarito: C. A afirmativa está em consonância exata com o § 3º do art. 48 da LDB. A letra B é falsa (devem ser revalidados por universidades <strong>públicas</strong> que tenham curso no mesmo nível - §2º). A letra A é falsa (têm validade nacional após registro, e o registro é feito em universidades indicadas pelo CNE - caput e §1º)."
+            },
+            {
+                enunciado: "O art. 52 da LDB conceitua e caracteriza as universidades, definindo-as como instituições pluridisciplinares de formação profissional, pesquisa e extensão. Dentre as exigências mínimas impostas pela legislação para a caracterização de uma universidade, encontra-se:",
+                opcoes: [
+                    "A obrigatoriedade de, pelo menos, metade de seu corpo docente atuar em regime de dedicação exclusiva.",
+                    "A exigência de que dois terços do corpo docente possuam titulação acadêmica de mestre ou doutor.",
+                    "A proibição absoluta da criação de universidades especializadas por um único campo do saber.",
+                    "A obrigatoriedade de que um terço do corpo docente, pelo menos, possua titulação acadêmica de mestrado ou doutorado, e um terço esteja em regime de tempo integral."
+                ],
+                correta: 3,
+                comentario: "Gabarito: D. O art. 52 elenca como requisitos: I - produção intelectual institucionalizada; II - <strong>um terço</strong> do corpo docente, pelo menos, com titulação acadêmica de mestrado ou doutorado; III - <strong>um terço</strong> do corpo docente em regime de tempo integral. E o parágrafo único faculta (permite) a criação de universidades especializadas."
+            },
+            {
+                enunciado: "A autonomia didático-científica das universidades é pilar fundamental da educação superior. Conforme o art. 53, § 1º, da LDB, para garantir essa autonomia, caberá aos colegiados de ensino e pesquisa da universidade decidir, <strong>dentro dos recursos orçamentários disponíveis</strong>, sobre:",
+                opcoes: [
+                    "A alienação (venda) do patrimônio imobiliário da instituição e operações de crédito de grande monta no exterior.",
+                    "A aprovação de planos de investimentos referentes a obras de infraestrutura urbana da cidade universitária e gestão de impostos.",
+                    "A criação, expansão, modificação e extinção de cursos; ampliação e diminuição de vagas; contratação e dispensa de professores, entre outros.",
+                    "A estruturação de novos cursos de graduação, cuja aprovação ficará condicionada a referendo obrigatório do Congresso Nacional."
+                ],
+                correta: 2,
+                comentario: "Gabarito: C. O § 1º do art. 53 define expressamente o escopo da decisão dos colegiados (dentro dos recursos orçamentários): criação/extinção de cursos, vagas, programação de cursos/pesquisa/extensão, contratação/dispensa de professores e planos de carreira docente. As letras A e B fogem do escopo didático-científico dos colegiados previsto nesse parágrafo."
+            },
+            {
+                enunciado: "No que se refere à oferta de cursos, gestão e carga horária docente nas instituições públicas de educação superior (artigos 47, § 4º, 56 e 57 da LDB), julgue as proposições abaixo e marque a alternativa <strong>VERDADEIRA</strong>:",
+                opcoes: [
+                    "Nas instituições públicas de educação superior, o professor ficará obrigado a cumprir, no mínimo, vinte horas semanais de aulas exclusivas de graduação.",
+                    "As instituições públicas obedecerão ao princípio da gestão democrática, porém os docentes ocuparão no máximo quarenta por cento dos assentos nos órgãos colegiados deliberativos.",
+                    "A oferta noturna de cursos de graduação nas instituições públicas é obrigatória, garantida a previsão orçamentária, e deve observar os mesmos padrões de qualidade mantidos no período diurno.",
+                    "A LDB veda que atribuições de autonomia universitária sejam estendidas a instituições não classificadas como universidades, independentemente de avaliação do Poder Público."
+                ],
+                correta: 2,
+                comentario: "Gabarito: C. A LDB no art. 47, § 4º garante a oferta noturna nos mesmos padrões de qualidade do período diurno, sendo obrigatória nas públicas. A letra A é falsa (o mínimo é de <strong>oito</strong> horas semanais de aulas - art. 57). A letra B é falsa (os docentes ocuparão <strong>setenta por cento</strong> dos assentos - art. 56, parágrafo único). A letra D é falsa (o art. 54, § 2º, permite estender a autonomia a outras instituições bem avaliadas)."
+            }
+        ];
+
+        let questoesRespondidas = 0;
+        let acertos = 0;
+        let tempoSegundos = 0;
+        let cronometro;
+        const quizContainer = document.getElementById('quiz-container');
+        const progressText = document.getElementById('progress-text');
+        const timeText = document.getElementById('time-text');
+        const resultModal = document.getElementById('result-modal');
+        const finalScore = document.getElementById('final-score');
+        const finalTime = document.getElementById('final-time');
+
+        const letras = ['A', 'B', 'C', 'D'];
+
+        function formatarTempo(segundos) {
+            const m = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const s = (segundos % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function iniciarCronometro() {
+            cronometro = setInterval(() => {
+                tempoSegundos++;
+                timeText.innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function renderizarQuestoes() {
+            questoes.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q-card-${index}`;
+
+                let optionsHtml = '';
+                q.opcoes.forEach((opcao, opIndex) => {
+                    optionsHtml += `
+                        <div class="option" id="opt-${index}-${opIndex}" onclick="registrarResposta(${index}, ${opIndex})">
+                            <div class="option-letter">${letras[opIndex]}</div>
+                            <div class="option-text">${opcao}</div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="question-number">Questão ${index + 1}</div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-group" id="opt-group-${index}">
+                        ${optionsHtml}
+                    </div>
+                    <div class="feedback-box" id="feedback-${index}">
+                        <h4>💡 Comentário do Professor</h4>
+                        <p>${q.comentario}</p>
+                    </div>
+                `;
+                
+                quizContainer.appendChild(card);
+            });
+        }
+
+        window.registrarResposta = function(qIndex, selecionadaIndex) {
+            const card = document.getElementById(`q-card-${qIndex}`);
+            
+            // Verifica se a questão já foi respondida
+            if (card.classList.contains('answered')) return;
+
+            // Marca como respondida
+            card.classList.add('answered');
+            questoesRespondidas++;
+            progressText.innerText = `${questoesRespondidas}/10`;
+
+            const corretaIndex = questoes[qIndex].correta;
+            const isCorreta = selecionadaIndex === corretaIndex;
+
+            if (isCorreta) acertos++;
+
+            // Desabilita todas as opções da questão
+            const opcoes = document.querySelectorAll(`#opt-group-${qIndex} .option`);
+            opcoes.forEach((opt, idx) => {
+                opt.classList.add('disabled');
+                
+                if (idx === corretaIndex) {
+                    opt.classList.add('correct');
+                } else if (idx === selecionadaIndex && !isCorreta) {
+                    opt.classList.add('incorrect');
+                }
+            });
+
+            // Exibe o comentário
+            document.getElementById(`feedback-${qIndex}`).style.display = 'block';
+
+            // Verifica fim de prova
+            if (questoesRespondidas === 10) {
+                finalizarProva();
+            }
+        };
+
+        function finalizarProva() {
+            clearInterval(cronometro);
+            setTimeout(() => {
+                finalScore.innerText = acertos;
+                finalTime.innerText = formatarTempo(tempoSegundos);
+                resultModal.style.display = 'flex';
+            }, 800); // pequeno delay para o usuário ver a última resposta antes do modal
+        }
+
+        // Inicialização
+        window.onload = () => {
+            renderizarQuestoes();
+            iniciarCronometro();
+        };
+    </script>
+</body>
+</html>

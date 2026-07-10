@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado FUNECE - SEDUC CE | Educação Bilíngue de Surdos (LDB)</title>
+    <style>
+        :root {
+            --primary-color: #1e3a5f;
+            --secondary-color: #3b82f6;
+            --bg-color: #f8fafc;
+            --text-color: #334155;
+            --correct-bg: #ecfdf5;
+            --correct-border: #10b981;
+            --correct-text: #047857;
+            --incorrect-bg: #fef2f2;
+            --incorrect-border: #ef4444;
+            --incorrect-text: #b91c1c;
+            --feedback-bg: #f0f9ff;
+            --feedback-border: #0ea5e9;
+            --hover-bg: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+
+        /* Cabeçalho Fixo */
+        header {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title h1 {
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .hud-panel {
+            display: flex;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Container Principal */
+        main {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Cartão de Questão */
+        .question-card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            transition: opacity 0.3s;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .question-number {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.15rem;
+            white-space: nowrap;
+        }
+
+        .question-header::after {
+            content: "";
+            flex-grow: 1;
+            height: 1px;
+            background: #cbd5e1;
+        }
+
+        .enunciado {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            text-align: justify;
+            color: #0f172a;
+        }
+
+        .itens-julgamento {
+            margin: 15px 0 20px 30px;
+            list-style-type: none;
+        }
+
+        .itens-julgamento li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .itens-julgamento li::before {
+            content: "•";
+            color: var(--secondary-color);
+            position: absolute;
+            left: -20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Alternativas */
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            font-size: 1.05rem;
+        }
+
+        .option:hover:not(.disabled) {
+            border-color: var(--secondary-color);
+            background: var(--hover-bg);
+        }
+
+        .option-letter {
+            font-weight: bold;
+            margin-right: 15px;
+            background: #f1f5f9;
+            min-width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: var(--primary-color);
+            flex-shrink: 0;
+            border: 1px solid #cbd5e1;
+        }
+
+        /* Estados Pós-Resposta */
+        .option.correct {
+            background-color: var(--correct-bg);
+            border-color: var(--correct-border);
+            color: var(--correct-text);
+        }
+
+        .option.correct .option-letter {
+            background-color: var(--correct-border);
+            color: #ffffff;
+            border-color: var(--correct-border);
+        }
+
+        .option.incorrect {
+            background-color: var(--incorrect-bg);
+            border-color: var(--incorrect-border);
+            color: var(--incorrect-text);
+        }
+
+        .option.incorrect .option-letter {
+            background-color: var(--incorrect-border);
+            color: #ffffff;
+            border-color: var(--incorrect-border);
+        }
+
+        .option.disabled {
+            pointer-events: none;
+        }
+
+        .question-card.answered .option:not(.correct):not(.incorrect) {
+            opacity: 0.6;
+            filter: grayscale(100%);
+        }
+
+        /* Feedback / Comentário */
+        .feedback-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: var(--feedback-bg);
+            border-left: 5px solid var(--feedback-border);
+            border-radius: 0 6px 6px 0;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        .feedback-box h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.05rem;
+        }
+
+        .feedback-box p {
+            font-size: 1rem;
+            text-align: justify;
+            color: #1e293b;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal de Finalização */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .score-display {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .score-display .points {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: var(--correct-border);
+            line-height: 1;
+        }
+
+        .score-display .time-spent {
+            margin-top: 15px;
+            color: #475569;
+            font-size: 1.1rem;
+        }
+
+        .btn-restart {
+            background: var(--primary-color);
+            color: #ffffff;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-restart:hover {
+            background: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; text-align: center; gap: 15px; }
+            .hud-panel { width: 100%; justify-content: center; }
+            .question-card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado FUNECE - SEDUC CE</h1>
+            <p>Conhecimentos Pedagógicos: Educação Bilíngue de Surdos (LDB - Arts. 60-A e 60-B)</p>
+        </div>
+        <div class="hud-panel">
+            <div class="hud-item" title="Progresso">
+                <span>📋</span> <span id="progress-text">0/10</span>
+            </div>
+            <div class="hud-item" title="Tempo Decorrido">
+                <span>⏱️</span> <span id="timer-text">00:00</span>
+            </div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- Questões injetadas via JavaScript -->
+    </main>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>Simulado Concluído!</h2>
+            <p>Verifique seu desempenho final:</p>
+            <div class="score-display">
+                <div class="points"><span id="final-score">0</span>/10</div>
+                <div class="time-spent">Tempo total da prova: <strong id="final-time">00:00</strong></div>
+            </div>
+            <button class="btn-restart" onclick="location.reload()">Refazer Simulado</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                enunciado: "Nos termos do art. 60-A da Lei de Diretrizes e Bases da Educação Nacional (LDB), a educação bilíngue de surdos é definida como uma modalidade de educação escolar que adota um modelo linguístico específico. Acerca desse modelo estruturante da modalidade, é correto afirmar que:",
+                opcoes: [
+                    "A Libras e a modalidade oral da Língua Portuguesa são consideradas primeiras línguas simultaneamente no processo de letramento.",
+                    "A Libras é adotada como primeira língua e o português escrito como segunda língua.",
+                    "O português, em sua modalidade escrita e oral, figura como primeira língua, sendo a Libras ofertada como componente curricular optativo.",
+                    "A educação bilíngue prioriza a tecnologia assistiva para o desenvolvimento da fala, relegando a Libras ao status de segunda língua de instrução."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> Segundo o caput do art. 60-A da LDB (incluído pela Lei nº 14.191/2021), entende-se por educação bilíngue de surdos a modalidade oferecida 'em Língua Brasileira de Sinais (Libras), como primeira língua, e em português escrito, como segunda língua'."
+            },
+            {
+                enunciado: "Considere os preceitos da LDB acerca do público-alvo e das condições de oferta da educação bilíngue de surdos e julgue os itens a seguir:<br><ul class='itens-julgamento'><li>I. A modalidade é destinada, dentre outros, a surdos, surdo-cegos e deficientes auditivos sinalizantes.</li><li>II. A inserção nessa modalidade é compulsória a todos os estudantes surdos, independentemente de consulta à família, visando garantir a fluência em Libras.</li><li>III. A oferta da educação bilíngue de surdos exige a opção expressa por parte do educando ou, no que couber, de seus pais ou responsáveis.</li><li>IV. O público-alvo abrange, de forma explícita, estudantes surdos com altas habilidades ou superdotação.</li></ul>Estão corretos apenas os itens:",
+                opcoes: [
+                    "I, II e III.",
+                    "I, III e IV.",
+                    "II e IV.",
+                    "I, II, III e IV."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> O item II está incorreto pois a modalidade é voltada para aqueles que são 'optantes' por ela, não sendo compulsória (art. 60-A, caput). Os itens I e IV descrevem fielmente o público-alvo disposto na lei. O item III reflete a natureza optativa (garantida no § 3º e no caput do art. 60-A)."
+            },
+            {
+                enunciado: "A Lei nº 14.191/2021 inseriu disposições específicas sobre o marco temporal para a oferta da modalidade de educação bilíngue de surdos. Segundo a literalidade do § 2º do art. 60-A da LDB, essa oferta terá início:",
+                opcoes: [
+                    "Nos anos iniciais do Ensino Fundamental e se estenderá até o término compulsório do Ensino Médio.",
+                    "A partir do primeiro ano de vida, nas creches, encerrando-se na educação superior e nas modalidades de extensão.",
+                    "Ao zero ano, na educação infantil, e se estenderá ao longo da vida.",
+                    "Exclusivamente a partir da pré-escola, quando se inicia a obrigatoriedade da educação básica, estendendo-se ao longo da vida."
+                ],
+                correta: 2,
+                comentario: "<strong>Gabarito: Letra C.</strong> A LDB estabelece textualmente no art. 60-A, § 2º: 'A oferta de educação bilíngue de surdos terá início ao zero ano, na educação infantil, e se estenderá ao longo da vida'. Essa diretriz demonstra a importância da intervenção linguística precoce."
+            },
+            {
+                enunciado: "Em relação às prerrogativas de matrícula e ao acesso a tecnologias, o § 3º do art. 60-A da LDB resguarda direitos específicos, sobretudo para os estudantes que não se enquadram perfeitamente no perfil de sinalizantes estritos. De acordo com a referida norma, assinale a assertiva juridicamente correta:",
+                opcoes: [
+                    "A efetivação da educação bilíngue anula a prerrogativa de matrícula em classes regulares, visando evitar a evasão escolar nos polos bilíngues.",
+                    "Para os surdos oralizados, a lei veda temporariamente o acesso a tecnologias assistivas, pois a prioridade absoluta deve ser o letramento inicial em Libras.",
+                    "A matrícula na modalidade bilíngue é impositiva aos surdos oralizados, cabendo ao Estado fornecer fonoaudiologia exclusivamente nas escolas comuns.",
+                    "A oferta da educação bilíngue dar-se-á sem prejuízo das prerrogativas de matrícula em escolas e classes regulares e do acesso a tecnologias assistivas para os surdos oralizados."
+                ],
+                correta: 3,
+                comentario: "<strong>Gabarito: Letra D.</strong> O § 3º do art. 60-A assegura que a educação bilíngue ocorrerá 'sem prejuízo das prerrogativas de matrícula em escolas e classes regulares' (conforme decisão da família/estudante) e resguarda as garantias da Lei Brasileira de Inclusão, 'que incluem, para os surdos oralizados, o acesso a tecnologias assistivas'."
+            },
+            {
+                enunciado: "Sobre a organização espacial e os serviços de apoio da educação bilíngue de surdos previstos no art. 60-A da LDB, julgue os seguintes itens:<br><ul class='itens-julgamento'><li>I. A modalidade pode ser oferecida em escolas bilíngues de surdos, classes bilíngues de surdos, escolas comuns ou em polos de educação bilíngue.</li><li>II. O atendimento educacional especializado (AEE) bilíngue é dispensado pela lei, visando evitar redundância de recursos na própria modalidade bilíngue.</li><li>III. Os serviços de apoio educacional especializado serão oferecidos, quando necessário, para atender às especificidades linguísticas dos estudantes surdos.</li><li>IV. A educação bilíngue deve restringir-se a institutos federais especializados, sendo vedada a oferta pelas redes municipais de ensino.</li></ul>É correto o que se afirma apenas em:",
+                opcoes: [
+                    "I e III.",
+                    "I e II.",
+                    "III e IV.",
+                    "I, II e III."
+                ],
+                correta: 0,
+                comentario: "<strong>Gabarito: Letra A.</strong> O item I está correto (locais de oferta previstos no caput do art. 60-A). O item III está correto (art. 60-A, § 1º). O item II é falso porque o § 1º prevê expressamente o AEE bilíngue. O item IV é falso, pois qualquer ente federativo (sistema de ensino) deve assegurar a modalidade."
+            },
+            {
+                enunciado: "O art. 60-B da LDB dispõe sobre as condições materiais e profissionais indispensáveis à efetivação da educação bilíngue de surdos. Consoante o rigor do comando legal, os sistemas de ensino assegurarão a esse alunado:",
+                opcoes: [
+                    "Materiais didáticos adaptados e professores com nível médio na modalidade Normal, desde que certificados em cursos livres de Libras.",
+                    "Materiais didáticos e professores bilíngues com formação e especialização adequadas, exigindo-se destes formação em nível superior.",
+                    "Professores de apoio e intérpretes de Libras em todas as turmas regulares, dispensando-se o docente regente do domínio da língua de sinais.",
+                    "Tecnologia assistiva de alto custo em substituição ao professor bilíngue, quando houver escassez crônica de profissionais habilitados na rede pública."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> O art. 60-B exige expressamente que os sistemas de ensino assegurarão 'materiais didáticos e professores bilíngues com formação e especialização adequadas, em nível superior'. Não cabe substituição por tecnologia assistiva ou dispensa de nível superior na previsão deste artigo."
+            },
+            {
+                enunciado: "A legislação reconhece a importância da participação social e da representatividade da comunidade surda nas políticas educacionais afins. Nos processos de contratação e de avaliação periódica dos professores bilíngues, o parágrafo único do art. 60-B da LDB determina de forma peremptória que:",
+                opcoes: [
+                    "Deverão ser ouvidas as entidades representativas das pessoas surdas.",
+                    "Os conselhos tutelares e o Ministério Público deverão atestar a proficiência dos docentes antes da posse.",
+                    "Caberá exclusivamente aos diretores e coordenadores escolares a homologação da fluência em Libras dos candidatos.",
+                    "Será facultativa a consulta às associações de surdos, dependendo exclusivamente da regulamentação de cada município."
+                ],
+                correta: 0,
+                comentario: "<strong>Gabarito: Letra A.</strong> O parágrafo único do art. 60-B da LDB é claro: 'Nos processos de contratação e de avaliação periódica dos professores a que se refere o caput deste artigo serão ouvidas as entidades representativas das pessoas surdas'."
+            },
+            {
+                enunciado: "A compreensão da educação bilíngue de surdos enquanto modalidade autônoma (Capítulo V-A) trouxe inovações dogmáticas para a LDB. Avalie as assertivas à luz das alterações promovidas pela Lei nº 14.191/2021:<br><ul class='itens-julgamento'><li>I. Diferentemente da educação especial típica (oferecida preferencialmente na rede regular comum), a educação bilíngue de surdos possui contornos espaciais próprios e diversificados expressos em lei, como escolas e polos bilíngues.</li><li>II. Estudantes com surdocegueira não estão contemplados no Capítulo V-A, devendo ser atendidos exclusivamente no âmbito do Capítulo V (Educação Especial).</li><li>III. A determinação legal do português escrito como segunda língua altera os pressupostos metodológicos de avaliação e instrução para esse público específico.</li></ul>Estão corretas as assertivas:",
+                opcoes: [
+                    "I, II e III.",
+                    "I e II apenas.",
+                    "I e III apenas.",
+                    "II e III apenas."
+                ],
+                correta: 2,
+                comentario: "<strong>Gabarito: Letra C.</strong> O item I está correto (a lei elenca escolas, polos e classes bilíngues, além das comuns). O item III está correto (a Libras é L1, português escrito é L2). O item II está falso, pois o caput do art. 60-A inclui explicitamente os 'surdo-cegos' no público-alvo da educação bilíngue."
+            },
+            {
+                enunciado: "O § 3º do art. 60-A da LDB faz remissão expressa à Lei nº 13.146/2015 (Estatuto da Pessoa com Deficiência). Qual é a finalidade precípua dessa articulação normativa promovida pelo legislador no contexto da recém-criada modalidade de educação bilíngue de surdos?",
+                opcoes: [
+                    "Determinar que o Estatuto revogou a possibilidade de educação segregada, forçando a inclusão total independentemente da opção pelo modelo bilíngue.",
+                    "Assegurar que a oferta da educação bilíngue de surdos não suprima garantias já consolidadas, a exemplo do acesso a tecnologias assistivas para os surdos oralizados.",
+                    "Estabelecer que somente os estudantes surdos que renunciarem formalmente às tecnologias assistivas poderão ingressar nas escolas bilíngues de surdos.",
+                    "Condicionar o repasse de verbas federais para as escolas bilíngues à aprovação prévia dos conselhos estaduais de direitos da pessoa com deficiência."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> A LDB articulou-se ao Estatuto para garantir que a opção por uma escola/classe bilíngue (onde a Libras é o foco) não retire do educando direitos assistenciais preexistentes, especialmente o direito de utilizar tecnologias assistivas, fator crucial para os surdos oralizados (conforme texto do § 3º, art. 60-A)."
+            },
+            {
+                enunciado: "A FUNECE exige do candidato o domínio dos fundamentos pedagógicos emanados da legislação. À luz da redação conferida pela Lei nº 14.191/2021 à LDB, a instituição da Educação Bilíngue de Surdos como modalidade de ensino:",
+                opcoes: [
+                    "Extinguiu, por força de lei, a figura do tradutor/intérprete de Libras nas escolas regulares, uma vez que o alunado surdo passou a ser atendido exclusivamente nos polos bilíngues.",
+                    "Representa o reconhecimento jurídico e pedagógico da Libras como língua de instrução e de constituição de identidade, resguardando, contudo, a natureza optativa da modalidade.",
+                    "Promoveu a substituição integral do ensino da Língua Portuguesa pelo ensino da Libras durante os anos iniciais do Ensino Fundamental para todo o público-alvo.",
+                    "Delimitou o público da modalidade estritamente aos surdos profundos sem comorbidades, transferindo os alunos com deficiências associadas para o atendimento médico-hospitalar."
+                ],
+                correta: 1,
+                comentario: "<strong>Gabarito: Letra B.</strong> A modalidade reconhece o modelo bilíngue (Libras L1 / Português Escrito L2) respeitando a cultura surda. A alternativa B é a única correta. A letra A é falsa (há opção pela escola comum). A letra C é falsa (o português escrito é ensinado como L2, não substituído). A letra D é falsa (inclui surdos com deficiências associadas)."
+            }
+        ];
+
+        let questoesRespondidas = 0;
+        let totalCorretas = 0;
+        let tempoSegundos = 0;
+        let intervaloRelogio;
+        
+        const container = document.getElementById('quiz-container');
+        const txtProgresso = document.getElementById('progress-text');
+        const txtTempo = document.getElementById('timer-text');
+        const modalResultado = document.getElementById('result-modal');
+        
+        function formatarTempo(segundos) {
+            const m = Math.floor(segundos / 60).toString().padStart(2, '0');
+            const s = (segundos % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function iniciarRelogio() {
+            intervaloRelogio = setInterval(() => {
+                tempoSegundos++;
+                txtTempo.innerText = formatarTempo(tempoSegundos);
+            }, 1000);
+        }
+
+        function pararRelogio() {
+            clearInterval(intervaloRelogio);
+        }
+
+        function renderizarSimulado() {
+            const letras = ['A', 'B', 'C', 'D'];
+            
+            questoes.forEach((q, indexQuestion) => {
+                const divCard = document.createElement('div');
+                divCard.className = 'question-card';
+                divCard.id = `q-card-${indexQuestion}`;
+
+                let htmlOpcoes = '';
+                q.opcoes.forEach((textoOpcao, indexOption) => {
+                    htmlOpcoes += `
+                        <div class="option" id="opt-${indexQuestion}-${indexOption}" onclick="processarResposta(${indexQuestion}, ${indexOption})">
+                            <div class="option-letter">${letras[indexOption]}</div>
+                            <div class="option-text">${textoOpcao}</div>
+                        </div>
+                    `;
+                });
+
+                divCard.innerHTML = `
+                    <div class="question-header">
+                        <div class="question-number">Questão ${indexQuestion + 1}</div>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-group" id="group-${indexQuestion}">
+                        ${htmlOpcoes}
+                    </div>
+                    <div class="feedback-box" id="feedback-${indexQuestion}">
+                        <h4>📘 Comentário do Professor</h4>
+                        <p>${q.comentario}</p>
+                    </div>
+                `;
+
+                container.appendChild(divCard);
+            });
+        }
+
+        window.processarResposta = function(indiceQuestao, indiceSelecionado) {
+            const card = document.getElementById(`q-card-${indiceQuestao}`);
+            
+            // Impede duplo clique na mesma questão
+            if (card.classList.contains('answered')) return;
+
+            // Marca questão como respondida
+            card.classList.add('answered');
+            questoesRespondidas++;
+            txtProgresso.innerText = `${questoesRespondidas}/10`;
+
+            const indiceCorreto = questoes[indiceQuestao].correta;
+            const acertou = (indiceSelecionado === indiceCorreto);
+
+            if (acertou) {
+                totalCorretas++;
+            }
+
+            // Aplicar CSS de bloqueio e cores
+            const grupoOpcoes = document.querySelectorAll(`#group-${indiceQuestao} .option`);
+            grupoOpcoes.forEach((opcaoDOM, idx) => {
+                opcaoDOM.classList.add('disabled'); // Desativa cliques/hover extras
+                
+                if (idx === indiceCorreto) {
+                    opcaoDOM.classList.add('correct'); // A verdadeira sempre fica verde
+                } else if (idx === indiceSelecionado && !acertou) {
+                    opcaoDOM.classList.add('incorrect'); // A clicada errada fica vermelha
+                }
+            });
+
+            // Exibir feedback imediatamente
+            document.getElementById(`feedback-${indiceQuestao}`).style.display = 'block';
+
+            // Verificar finalização
+            if (questoesRespondidas === questoes.length) {
+                pararRelogio();
+                setTimeout(() => {
+                    document.getElementById('final-score').innerText = totalCorretas;
+                    document.getElementById('final-time').innerText = formatarTempo(tempoSegundos);
+                    modalResultado.style.display = 'flex';
+                }, 800); // Delay suave antes de chamar o modal final
+            }
+        };
+
+        // Inicialização
+        window.onload = () => {
+            renderizarSimulado();
+            iniciarRelogio();
+        };
+    </script>
+</body>
+</html>

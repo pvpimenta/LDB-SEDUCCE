@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulado SEDUC CE - FUNECE: Educação Profissional e Tecnológica</title>
+    <style>
+        :root {
+            --primary: #0f172a;
+            --secondary: #3b82f6;
+            --accent: #1d4ed8;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --success-bg: #dcfce7;
+            --success-border: #22c55e;
+            --success-text: #15803d;
+            --error-bg: #fee2e2;
+            --error-border: #ef4444;
+            --error-text: #b91c1c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding-bottom: 80px;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1.2rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-title h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .header-title p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 0.3rem;
+        }
+
+        .status-panel {
+            display: flex;
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        main {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            border: 1px solid #e2e8f0;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--background);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-header h2 {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .question-meta {
+            font-size: 0.75rem;
+            color: white;
+            background: var(--secondary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .enunciado {
+            font-size: 1.05rem;
+            margin-bottom: 1.5rem;
+            text-align: justify;
+            color: #334155;
+            line-height: 1.7;
+        }
+
+        .itens-romanos {
+            margin: 1rem 0 1rem 2rem;
+            list-style-type: upper-roman;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .itens-romanos li {
+            margin-bottom: 0.8rem;
+            padding-left: 0.5rem;
+            text-align: justify;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.2rem;
+            background-color: var(--surface);
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .option:hover:not(.desabilitada) {
+            background-color: #f1f5f9;
+            border-color: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            background-color: #f1f5f9;
+            color: var(--text-muted);
+            min-width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 1.2rem;
+            border: 2px solid #cbd5e1;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .option.correta {
+            background-color: var(--success-bg) !important;
+            border-color: var(--success-border) !important;
+            color: var(--success-text) !important;
+            font-weight: 600;
+        }
+
+        .option.correta .option-letter {
+            background-color: var(--success-border) !important;
+            color: white !important;
+            border-color: var(--success-border) !important;
+        }
+
+        .option.incorreta {
+            background-color: var(--error-bg) !important;
+            border-color: var(--error-border) !important;
+            color: var(--error-text) !important;
+        }
+
+        .option.incorreta .option-letter {
+            background-color: var(--error-border) !important;
+            color: white !important;
+            border-color: var(--error-border) !important;
+        }
+
+        .desabilitada {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        
+        .option.correta.desabilitada, .option.incorreta.desabilitada {
+            opacity: 1; /* Keep full opacity for selected/revealed answers */
+        }
+
+        .feedback {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            background-color: #f0f9ff;
+            border-left: 5px solid var(--secondary);
+            border-radius: 4px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .feedback h3 {
+            color: var(--accent);
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feedback p {
+            font-size: 0.95rem;
+            color: #0f172a;
+            text-align: justify;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #end-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .end-card {
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .end-card h2 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        .score-highlight {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--secondary);
+            margin: 1rem 0;
+            line-height: 1;
+        }
+
+        .btn-restart {
+            margin-top: 1.5rem;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1.05rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-restart:hover {
+            background-color: #1e3a8a;
+        }
+
+        @media(max-width: 768px) {
+            header { flex-direction: column; gap: 0.8rem; text-align: center; }
+            .status-panel { width: 100%; justify-content: center; }
+            .question-card { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>Simulado FUNECE - SEDUC CE</h1>
+            <p>Educação Profissional e Tecnológica (LDB - Arts. 39 ao 42-B)</p>
+        </div>
+        <div class="status-panel">
+            <div>Progresso: <span id="progresso">0/10</span></div>
+            <div>Tempo: <span id="cronometro">00:00</span></div>
+        </div>
+    </header>
+
+    <main id="quiz-container">
+        <!-- Questions injected via JS -->
+    </main>
+
+    <div id="end-screen">
+        <div class="end-card">
+            <h2>Simulado Concluído!</h2>
+            <p>Seu desempenho na etapa de conhecimentos pedagógicos:</p>
+            <div class="score-highlight" id="final-score">0/10</div>
+            <p>Tempo de resolução: <strong id="final-time">00:00</strong></p>
+            <button class="btn-restart" onclick="location.reload()">Realizar Nova Tentativa</button>
+        </div>
+    </div>
+
+    <script>
+        const questoes = [
+            {
+                enunciado: "De acordo com o Art. 39 da LDB (Lei nº 9.394/1996), a educação profissional e tecnológica, no cumprimento dos objetivos da educação nacional, integra-se aos diferentes níveis e modalidades de educação. Assinale a alternativa que indica corretamente a quais outras dimensões esta modalidade também deve se integrar:",
+                alternativas: [
+                    "Às dimensões do trabalho, da ciência e da tecnologia.",
+                    "Exclusivamente à dimensão do trabalho prático e ao setor produtivo industrial.",
+                    "Às dimensões da pesquisa acadêmica stricto sensu e da assistência social.",
+                    "Às dimensões do mercado de trabalho globalizado e das relações de consumo."
+                ],
+                correta: 0,
+                feedback: "O Art. 39, caput, da LDB é taxativo ao afirmar que a educação profissional e tecnológica integra-se aos diferentes níveis e modalidades de educação e às dimensões do trabalho, da ciência e da tecnologia. As demais alternativas restringem ou distorcem o escopo legal."
+            },
+            {
+                enunciado: "O § 2º do Art. 39 da LDB estipula a abrangência dos cursos de educação profissional e tecnológica. Avalie os itens abaixo:<br><ul class='itens-romanos'><li>I. Cursos de formação inicial e continuada ou qualificação profissional.</li><li>II. Cursos de educação profissional técnica de nível médio.</li><li>III. Cursos de educação profissional tecnológica de graduação e pós-graduação.</li><li>IV. Cursos de educação profissional técnica de nível fundamental obrigatório.</li></ul>Estão corretos apenas os itens:",
+                alternativas: [
+                    "I, II e IV.",
+                    "II e III.",
+                    "I, II e III.",
+                    "I, III e IV."
+                ],
+                correta: 2,
+                feedback: "A assertiva I, II e III reproduzem fielmente os incisos I, II e III do § 2º do Art. 39. O item IV está incorreto, pois a LDB não prevê 'educação profissional técnica de nível fundamental obrigatório' no rol de abrangência da EPT estabelecido no respectivo artigo."
+            },
+            {
+                enunciado: "Considerando as disposições da Lei nº 14.645/2023, incorporadas à LDB no que tange ao aproveitamento de estudos, assinale a afirmação correta sobre a relação entre a educação profissional técnica de nível médio e a educação superior:",
+                alternativas: [
+                    "As instituições de educação superior estão proibidas de aproveitar experiências do ensino técnico, visando resguardar a autonomia universitária.",
+                    "As instituições de educação superior deverão dar transparência e estabelecer critérios objetivos para o aproveitamento das experiências desenvolvidas no curso técnico, sempre que forem de áreas afins.",
+                    "O aproveitamento de conhecimentos ocorrerá de forma automática e integral, dispensando o estudante técnico de cursar até 50% da graduação afim.",
+                    "As universidades poderão aproveitar as experiências técnicas de nível médio, desde que o estudante realize exames supletivos antes do ingresso."
+                ],
+                correta: 1,
+                feedback: "Conforme o § 4º do Art. 39 (incluído pela Lei nº 14.645/2023), as instituições de educação superior deverão dar transparência e estabelecer critérios e procedimentos objetivos para o aproveitamento das experiências e conhecimentos desenvolvidos na educação profissional técnica de nível médio, quando forem áreas afins."
+            },
+            {
+                enunciado: "Em relação aos cursos especiais abertos à comunidade oferecidos pelas instituições de educação profissional e tecnológica (Art. 42 da LDB), a matrícula nesses cursos é condicionada:",
+                alternativas: [
+                    "Obrigatoriamente à comprovação de conclusão do Ensino Médio regular ou modalidade EJA.",
+                    "À aprovação prévia em exame de proficiência técnica emitido pelo Ministério da Educação.",
+                    "À capacidade de aproveitamento do candidato e não necessariamente ao seu nível de escolaridade.",
+                    "À inserção prévia do candidato no mercado de trabalho na área tecnológica pleiteada."
+                ],
+                correta: 2,
+                feedback: "O Art. 42 da LDB determina de maneira explícita que as instituições oferecerão cursos especiais, abertos à comunidade, 'condicionada a matrícula à capacidade de aproveitamento e não necessariamente ao nível de escolaridade'."
+            },
+            {
+                enunciado: "A educação profissional e tecnológica pode ser desenvolvida em diferentes espaços e articulações. Segundo o Art. 40 da LDB, o desenvolvimento da educação profissional se dará:",
+                alternativas: [
+                    "Exclusivamente no ambiente de trabalho (modalidade aprendizagem), vedada sua oferta por instituições regulares de ensino.",
+                    "Em articulação com o ensino regular ou por diferentes estratégias de educação continuada, em instituições especializadas ou no ambiente de trabalho.",
+                    "Preferencialmente no ensino regular, sendo proibida a validação de estratégias de educação continuada realizadas em ambiente corporativo.",
+                    "De forma desvinculada do ensino regular, para assegurar a especificidade e a carga horária das instituições especializadas."
+                ],
+                correta: 1,
+                feedback: "Segundo o Art. 40, 'A educação profissional será desenvolvida em articulação com o ensino regular ou por diferentes estratégias de educação continuada, em instituições especializadas ou no ambiente de trabalho'. A lei valoriza a multiplicidade de espaços formativos."
+            },
+            {
+                enunciado: "Acerca do itinerário contínuo de formação profissional e tecnológica previsto no Art. 42-A da LDB (incluído pela Lei nº 14.645/2023), julgue as proposições a seguir:<br><ul class='itens-romanos'><li>I. É organizado por eixos tecnológicos e deve observar o princípio da integração curricular entre cursos e programas.</li><li>II. É vedado ao itinerário contínuo integrar mais de um eixo tecnológico para garantir a especialização do estudante.</li><li>III. É estruturado de forma a permitir o aproveitamento incremental de experiências, certificações e conhecimentos desenvolvidos ao longo da trajetória.</li></ul>Está(ão) correta(s):",
+                alternativas: [
+                    "Apenas I.",
+                    "Apenas II e III.",
+                    "Apenas I e III.",
+                    "I, II e III."
+                ],
+                correta: 2,
+                feedback: "O item I está correto (caput do Art. 42-A). O item III está correto (§ 1º). O item II está incorreto, pois o § 2º do mesmo artigo expressa exatamente o oposto: 'O itinerário referido no § 1º deste artigo poderá integrar um ou mais eixos tecnológicos'."
+            },
+            {
+                enunciado: "No que se refere ao saber adquirido fora do ambiente acadêmico tradicional, a LDB, em seu Art. 41, preconiza que o conhecimento adquirido na educação profissional e tecnológica, inclusive no trabalho:",
+                alternativas: [
+                    "Não tem validade para fins de prosseguimento de estudos formais, limitando-se à ascensão salarial no emprego.",
+                    "Poderá ser objeto de avaliação, reconhecimento e certificação para prosseguimento ou conclusão de estudos.",
+                    "Será automaticamente validado como diploma de nível superior, mediante simples apresentação de carteira de trabalho.",
+                    "Poderá ser avaliado, desde que o profissional comprove, no mínimo, 10 anos ininterruptos de atividade na mesma área."
+                ],
+                correta: 1,
+                feedback: "O Art. 41 é claro ao garantir que o conhecimento adquirido, inclusive no trabalho, 'poderá ser objeto de avaliação, reconhecimento e certificação para prosseguimento ou conclusão de estudos', valorizando a aprendizagem não formal e informal."
+            },
+            {
+                enunciado: "A avaliação da qualidade das instituições e dos cursos orientará a oferta de educação profissional técnica e tecnológica (Art. 42-B). Segundo a LDB, essa avaliação deverá considerar, EXCETO:",
+                alternativas: [
+                    "A aprendizagem dos saberes do trabalho e as estatísticas de oferta, fluxo e rendimento.",
+                    "A aderência da oferta ao contexto social, econômico e produtivo local e nacional.",
+                    "A inserção dos egressos no mundo do trabalho e as condições institucionais de oferta.",
+                    "A padronização obrigatória dos currículos focada apenas nas demandas internacionais de importação."
+                ],
+                correta: 3,
+                feedback: "As alternativas A, B e C estão listadas no Art. 42-B como critérios que a avaliação deverá considerar (estatísticas, saberes do trabalho, aderência ao contexto socioeconômico, inserção de egressos). A alternativa D é uma invenção e contraria os princípios de atendimento à realidade local e nacional previstos na legislação."
+            },
+            {
+                enunciado: "Para viabilizar a organização e a equivalência para aproveitamento de estudos entre os níveis médio e superior da educação profissional e tecnológica, a legislação (Art. 42-A, § 3º) determina a utilização de instrumentos norteadores. Assinale a alternativa que os identifica:",
+                alternativas: [
+                    "Base Nacional Comum Curricular (BNCC) e os Parâmetros Curriculares Nacionais (PCN).",
+                    "Catálogo Nacional de Cursos Técnicos (CNCT) e o Catálogo Nacional de Cursos Superiores de Tecnologia (CNCST).",
+                    "Plano Nacional de Educação (PNE) e as Diretrizes Curriculares do Ensino Médio.",
+                    "Classificação Brasileira de Ocupações (CBO) e o Sistema Nacional de Avaliação da Educação Básica (SAEB)."
+                ],
+                correta: 1,
+                feedback: "O § 3º do Art. 42-A especifica que o Catálogo Nacional de Cursos Técnicos (CNCT) e o Catálogo Nacional de Cursos Superiores de Tecnologia (CNCST) orientarão a organização dos cursos e itinerários, permitindo sua equivalência."
+            },
+            {
+                enunciado: "Ainda com base no Art. 42-A da LDB, o Ministério da Educação (MEC) é responsável por manter e atualizar periodicamente os catálogos nacionais (CNCT e CNCST). Para tanto, o MEC deverá atuar em colaboração com diversos atores e observar certos referenciais. Assinale a alternativa correta sobre esse processo:",
+                alternativas: [
+                    "O MEC atuará de forma isolada e autônoma, observando unicamente as diretrizes do Banco Mundial.",
+                    "O MEC atuará em colaboração com os sistemas de ensino, instituições, e entidades de empregadores e trabalhadores, observando a CBO e a dinâmica do mundo do trabalho.",
+                    "A atualização ocorrerá mediante aprovação exclusiva do poder legislativo, após consulta plebiscitária aos estudantes.",
+                    "O MEC delegará integralmente às Secretarias Estaduais a função de atualizar os catálogos, limitando-se a publicá-los no Diário Oficial."
+                ],
+                correta: 1,
+                feedback: "O § 4º do Art. 42-A determina expressamente que o MEC manterá e atualizará os catálogos 'em colaboração com os sistemas de ensino, as instituições e as redes de educação (...) e as entidades representativas de empregadores e trabalhadores', devendo observar a Classificação Brasileira de Ocupações (CBO) e a dinâmica do mundo do trabalho."
+            }
+        ];
+
+        let questoesRespondidas = 0;
+        let pontuacao = 0;
+        let segundos = 0;
+        let timerInterval;
+
+        function formatarTempo(segs) {
+            const m = Math.floor(segs / 60).toString().padStart(2, '0');
+            const s = (segs % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function atualizarCronometro() {
+            segundos++;
+            document.getElementById('cronometro').textContent = formatarTempo(segundos);
+        }
+
+        function renderizarQuestoes() {
+            const container = document.getElementById('quiz-container');
+            const letras = ['A', 'B', 'C', 'D'];
+
+            questoes.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q-${index}`;
+
+                let optionsHTML = '';
+                q.alternativas.forEach((alt, altIndex) => {
+                    optionsHTML += `
+                        <div class="option" id="opt-${index}-${altIndex}" onclick="responder(${index}, ${altIndex})">
+                            <div class="option-letter">${letras[altIndex]}</div>
+                            <div>${alt}</div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="question-header">
+                        <h2>Questão ${index + 1}</h2>
+                        <span class="question-meta">Nível FUNECE</span>
+                    </div>
+                    <div class="enunciado">${q.enunciado}</div>
+                    <div class="options-container" id="container-${index}">
+                        ${optionsHTML}
+                    </div>
+                    <div class="feedback" id="feedback-${index}">
+                        <h3>Comentário do Professor</h3>
+                        <p>${q.feedback}</p>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function responder(questionIndex, selectedIndex) {
+            const container = document.getElementById(`container-${questionIndex}`);
+            
+            // Verifica se já foi respondida
+            if (container.dataset.answered === "true") return;
+            container.dataset.answered = "true";
+
+            const q = questoes[questionIndex];
+            const isCorrect = (selectedIndex === q.correta);
+            
+            if (isCorrect) pontuacao++;
+
+            // Estilizar as opções
+            for (let i = 0; i < 4; i++) {
+                const optDiv = document.getElementById(`opt-${questionIndex}-${i}`);
+                optDiv.classList.add('desabilitada');
+                
+                if (i === q.correta) {
+                    optDiv.classList.add('correta');
+                } else if (i === selectedIndex && !isCorrect) {
+                    optDiv.classList.add('incorreta');
+                }
+            }
+
+            // Exibir feedback
+            const feedbackDiv = document.getElementById(`feedback-${questionIndex}`);
+            feedbackDiv.style.display = 'block';
+
+            // Atualizar progresso
+            questoesRespondidas++;
+            document.getElementById('progresso').textContent = `${questoesRespondidas}/${questoes.length}`;
+
+            // Checar conclusão
+            if (questoesRespondidas === questoes.length) {
+                finalizarSimulado();
+            }
+        }
+
+        function finalizarSimulado() {
+            clearInterval(timerInterval);
+            
+            setTimeout(() => {
+                document.getElementById('final-score').textContent = `${pontuacao}/10`;
+                document.getElementById('final-time').textContent = formatarTempo(segundos);
+                document.getElementById('end-screen').style.display = 'flex';
+            }, 1000);
+        }
+
+        window.onload = () => {
+            renderizarQuestoes();
+            timerInterval = setInterval(atualizarCronometro, 1000);
+        };
+    </script>
+</body>
+</html>
