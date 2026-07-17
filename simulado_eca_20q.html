@@ -3,615 +3,567 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulado Interativo - ECA e Legislação da Educação</title>
+    <title>Simulado Interativo - IDECAN</title>
     <style>
         :root {
-            --primary: #1B365D;
-            --primary-light: #F0F4F8;
-            --accent: #4A90E2;
-            --text-dark: #333333;
-            --success: #2E7D32;
-            --success-bg: #E8F5E9;
-            --danger: #C62828;
-            --danger-bg: #FFEBEE;
-            --border: #D9D9D9;
+            --bg-color: #f8fafc;
+            --text-color: #333;
+            --card-bg: #fff;
+            --border-color: #e2e8f0;
+            --correct-bg: #dcfce7;
+            --correct-border: #22c55e;
+            --correct-text: #166534;
+            --wrong-bg: #fee2e2;
+            --wrong-border: #ef4444;
+            --wrong-text: #991b1b;
+            --hover-bg: #f1f5f9;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f7f9fb;
-            color: var(--text-dark);
-            margin: 0;
-            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             line-height: 1.6;
-        }
-
-        header {
-            background-color: var(--primary);
-            color: white;
-            text-align: center;
-            padding: 2rem 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        header h1 {
             margin: 0;
-            font-size: 1.8rem;
-        }
-
-        header p {
-            margin: 0.5rem 0 0 0;
-            opacity: 0.9;
+            padding: 20px;
         }
 
         .container {
-            max-width: 850px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+            max-width: 900px;
+            margin: 0 auto;
         }
 
-        .score-board {
-            background-color: white;
+        .question-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-left: 5px solid var(--accent);
-            position: sticky;
-            top: 10px;
-            z-index: 100;
-        }
-
-        .score-box {
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .score-num {
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
-
-        .quiz-card {
-            background-color: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border: 1px solid var(--border);
-            transition: transform 0.2s;
-        }
-
-        .quiz-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .meta-info {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 1rem;
-            border-bottom: 1px dashed var(--border);
-            padding-bottom: 0.5rem;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
         .question-text {
             font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1.2rem;
+            margin-bottom: 20px;
+            text-align: justify;
         }
 
-        .statement-box {
-            background-color: var(--primary-light);
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1.2rem;
-            font-size: 0.95rem;
+        .metadata {
+            font-size: 0.85rem;
+            color: #64748b;
+            background-color: #f1f5f9;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #94a3b8;
         }
 
-        .options-list {
+        .options-container {
             display: flex;
             flex-direction: column;
-            gap: 0.8rem;
+            gap: 10px;
         }
 
         .option {
-            padding: 1rem;
-            border: 1px solid var(--border);
+            padding: 15px;
+            border: 2px solid var(--border-color);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
-            align-items: center;
-            font-weight: 500;
-            background-color: #fff;
+            align-items: flex-start;
+            background-color: var(--card-bg);
         }
 
-        .option:hover {
-            background-color: var(--primary-light);
-            border-color: var(--accent);
+        .option:hover:not(.answered) {
+            background-color: var(--hover-bg);
+            border-color: #cbd5e1;
         }
 
         .option-letter {
             font-weight: bold;
-            margin-right: 0.8rem;
-            background: #eee;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            min-width: 20px;
-            text-align: center;
+            margin-right: 15px;
+            min-width: 25px;
         }
 
-        /* Classes de feedback interativo via JS */
         .option.correct {
-            background-color: var(--success-bg) !important;
-            border-color: var(--success) !important;
-            color: var(--success) !important;
+            background-color: var(--correct-bg);
+            border-color: var(--correct-border);
+            color: var(--correct-text);
         }
 
-        .option.incorrect {
-            background-color: var(--danger-bg) !important;
-            border-color: var(--danger) !important;
-            color: var(--danger) !important;
+        .option.wrong {
+            background-color: var(--wrong-bg);
+            border-color: var(--wrong-border);
+            color: var(--wrong-text);
         }
 
-        .option.disabled {
+        /* Classe para impedir novos cliques após responder */
+        .options-container.locked .option {
             pointer-events: none;
-            opacity: 0.7;
-        }
-
-        .option.correct-answer-revealed {
-            border-color: var(--success) !important;
-            background-color: var(--success-bg) !important;
-        }
-
-        .explanation {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            border-radius: 6px;
-            display: none;
-            font-size: 0.95rem;
-            border-left: 4px solid;
-        }
-
-        .explanation.show {
-            display: block;
-        }
-
-        .explanation.correct-theme {
-            background-color: var(--success-bg);
-            color: var(--success);
-            border-left-color: var(--success);
-        }
-
-        .explanation.incorrect-theme {
-            background-color: var(--danger-bg);
-            color: var(--danger);
-            border-left-color: var(--danger);
-        }
-
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: #666;
-            font-size: 0.9rem;
-            background-color: var(--primary-light);
-            margin-top: 4rem;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Simulado Interativo de Legislação Educacional</h1>
-        <p>Estatuto da Criança e do Adolescente (ECA) e Legislação Correlata</p>
-    </header>
+<div class="container">
+    <h1 style="text-align: center; color: #1e293b; margin-bottom: 40px;">Simulado Interativo (IDECAN)</h1>
 
-    <div class="container">
-        
-        <!-- Painel de Pontuação Dinâmico -->
-        <div class="score-board">
-            <div class="score-box">
-                <div class="score-num" id="answered-count">0 / 20</div>
-                <div>Respondidas</div>
+    <!-- QUESTÃO 1 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 30 ) Comentários ( 3 ) Estatísticas Cadernos Criar anotações Notificar Erro
+        </div>
+        <div class="question-text">
+            A política de gestão democrática do ensino posta em ação a partir da Lei de Diretrizes e Bases da Educação Nacional – LDB (Lei nº 9.394/96) surge em oposição ao modelo burocrático, centralizado e hierarquizado, e em defesa do apelo a um padrão administrativo com base em direitos efetivados, tendo em vista a descentralização, a autonomia, a transparência e a participação da comunidade na tomada de decisões no processo educativo. A LDB contempla a gestão democrática na educação básica, prevendo que:<br><br>
+            I. O ensino será ministrado com base no princípio da gestão democrática do ensino público, na forma da LDB e das demais legislações dos sistemas de ensino.<br>
+            II. Os sistemas de ensino definirão as normas de gestão democrática do ensino público, de acordo com suas peculiaridades e conforme o princípio da participação dos profissionais da educação na elaboração do projeto pedagógico da escola; e, da participação da comunidade local em conselhos escolares ou equivalentes.<br>
+            III. Os sistemas de ensino assegurarão às unidades escolares públicas de educação básica que integram progressivos graus de autonomia pedagógica e administrativa e de gestão financeira, observadas as normas gerais do direito financeiro público.<br><br>
+            Está(ão) correta(s) a(s) afirmativa(s)
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="true">
+                <span class="option-letter">A</span> I, II e III.
             </div>
-            <div class="score-box">
-                <div class="score-num" id="correct-count" style="color: var(--success);">0</div>
-                <div>Acertos</div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> I, apenas.
             </div>
-            <div class="score-box">
-                <div class="score-num" id="wrong-count" style="color: var(--danger);">0</div>
-                <div>Erros</div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> I e II, apenas.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">D</span> II e III, apenas.
             </div>
         </div>
-
-        <!-- ZONA DAS QUESTÕES -->
-        <div id="quiz-wrapper"></div>
-
     </div>
 
-    <footer>
-        Simulador Interativo Desenvolvido para Estudos Pedagógicos. Bons estudos!
-    </footer>
+    <!-- QUESTÃO 2 -->
+    <div class="question-card">
+        <div class="metadata">
+            2 Q1372211 Pedagogia Legislação da Educação , Normas Constitucionais do Direito à Educação , Lei nº 9.394 de 1996 - Lei de Diretrizes e Bases da Educação Nacional (LDBEN) e suas alterações<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            A atual Constituição Federal determina, no seu Artigo 205, que “a educação é direito de todos e dever do Estado e da família [...]”. Mais adiante, o seu Artigo 208 dá ao ensino obrigatório e gratuito – hoje dos 6 aos 14 anos – um especial destaque, ao identificá-lo como um dever do Estado e como um direito público subjetivo. De acordo com a Lei de Diretrizes e Bases da Educação Nacional (LDB), o ensino fundamental terá por objetivo a formação básica do cidadão mediante, EXCETO:
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> O desenvolvimento da capacidade de aprender, tendo como meios básicos o pleno domínio da leitura, da escrita e do cálculo.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> A compreensão do ambiente natural e social, do sistema político, da tecnologia, das artes e dos valores em que se fundamenta a sociedade.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> O desenvolvimento da capacidade de aprendizagem, tendo em vista a aquisição de conhecimentos e habilidades e a formação de atitudes e valores.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">D</span> A preparação básica para o trabalho e a cidadania do educando, para continuar aprendendo, de modo a ser capaz de se adaptar com flexibilidade a novas condições de ocupação ou aperfeiçoamento posteriores.
+            </div>
+        </div>
+    </div>
 
-    <script>
-        // Banco de dados contendo as 20 questões fundamentadas no ECA e Legislação da Educação
-        const questionsData = [
-            {
-                id: 1,
-                meta: "IDECAN - 2016 - SEARH - RN - Especialista de Educação",
-                question: "Uma vez já aplicada as medidas socioeducativas, conforme determina o Estatuto do Criança e do Adolescente (Lei nº 8.069/1990), podem ser implementadas, em alguns casos, a internação, nos termos do Art. 121 da supracitada lei. As entidades que desenvolvem programas de internação têm a obrigação de:",
-                statement: "I. Observar os direitos e garantias de que são titulares os adolescentes, não restringindo nenhum direito que não tenha sido objeto de restrição na decisão de internação.<br>II. Oferecer instalações físicas em condições adequadas, e toda infraestrutura e cuidados médicos e educacionais, inclusive na área de lazer e atividades culturais e desportivas.<br>III. Reavaliar periodicamente cada caso, com intervalo máximo de três meses, dando ciência dos resultados à autoridade competente.<br>IV. A liberação será compulsória aos dezoito anos de idade.<br>V. O período de internação, em alguns casos, poderá exceder a três anos.<br><br>Estão corretas apenas as afirmativas:",
-                options: {
-                    A: "I, II, III, IV e V.",
-                    B: "I, II, III e IV, apenas.",
-                    C: "I, II e III, apenas.",
-                    D: "I e II, apenas."
-                },
-                correct: "D",
-                explanation: "Gabarito: D. Itens I e II corretos (Art. 94 do ECA). O item III erra o prazo: a reavaliação ocorre a cada 6 meses (Art. 121, §2º). O item IV erra a idade compulsória: ocorre aos 21 anos (Art. 121, §4º). O item V está incorreto porque em NENHUMA hipótese a internação excederá 3 anos (Art. 121, §3º)."
-            },
-            {
-                id: 2,
-                meta: "FCC - Concurso Professor - ECA",
-                question: "Considerando as disposições do Estatuto da Criança e do Adolescente (ECA) a respeito do direito à educação, cultura, esporte e lazer, assinale a alternativa correta:",
-                statement: "",
-                options: {
-                    A: "É direito dos pais ter ciência do processo pedagógico, mas não participar da definição das propostas educacionais.",
-                    B: "É assegurado ao estudante o direito de contestar critérios avaliativos, devendo recorrer exclusivamente às instâncias escolares internas.",
-                    C: "Os estabelecimentos de ensino fundamental devem obrigatoriamente comunicar ao Conselho Tutelar os casos de reiteração de faltas injustificadas e de evasão escolar, após esgotados os recursos escolares.",
-                    D: "O acesso ao ensino obrigatório e gratuito é direito público subjetivo apenas para crianças até doze anos incompletos."
-                },
-                correct: "C",
-                explanation: "Gabarito: C. Conforme o Art. 56, II, do ECA, os dirigentes de estabelecimentos de ensino fundamental comunicarão ao Conselho Tutelar os casos de reiteração de faltas injustificadas e de evasão escolar, esgotados os recursos escolares."
-            },
-            {
-                id: 3,
-                meta: "VUNESP - Professor de Educação Básica",
-                question: "De acordo com o Art. 2º do ECA, considera-se criança e adolescente, para os efeitos desta Lei, a pessoa:",
-                statement: "",
-                options: {
-                    A: "Até doze anos de idade incompletos e entre doze e dezoito anos de idade, respectivamente.",
-                    B: "Até doze anos de idade completos e entre doze e vinte e um anos de idade, respectivamente.",
-                    C: "Até dez anos de idade incompletos e entre dez e dezoito anos de idade, respectivamente.",
-                    D: "Até doze anos de idade incompletos e entre doze e dezesseis anos de idade, respectivamente."
-                },
-                correct: "A",
-                explanation: "Gabarito: A. Texto literal do Artigo 2º do ECA: 'Considera-se criança, para os efeitos desta Lei, a pessoa até doze anos de idade incompletos, e adolescente aquela entre doze e dezoito anos de idade'."
-            },
-            {
-                id: 4,
-                meta: "FGV - Legislação da Educação / LDB",
-                question: "A Lei de Diretrizes e Bases da Educação Nacional (LDB nº 9.394/96) estabelece princípios para o ensino brasileiro. Assinale a alternativa que NÃO corresponde a um princípio previsto no Art. 3º da LDB:",
-                statement: "",
-                options: {
-                    A: "Igualdade de condições para o acesso e permanência na escola.",
-                    B: "Liberdade de aprender, ensinar, pesquisar e divulgar a cultura, o pensamento, a arte e o saber.",
-                    C: "Unicidade de concepções pedagógicas em todas as redes de ensino públicas e privadas.",
-                    D: "Pluralismo de ideias e de concepções pedagógicas."
-                },
-                correct: "C",
-                explanation: "Gabarito: C. O Art. 3º, III, da LDB prega o oposto: 'pluralismo de ideias e de concepções pedagógicas' e coexistência de instituições públicas e privadas, e não a 'unicidade'."
-            },
-            {
-                id: 5,
-                meta: "Consulplan - Concurso Magistério",
-                question: "Nos termos do ECA, quando ocorrer maus-tratos envolvendo alunos de uma escola pública, a direção da unidade de ensino deve notificar imediatamente o:",
-                statement: "",
-                options: {
-                    A: "Juiz da Vara da Infância e da Juventude.",
-                    B: "Conselho Tutelar.",
-                    C: "Ministério Público.",
-                    D: "Secretário Municipal de Educação."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. De acordo com o Art. 56, inciso I, do ECA, os dirigentes de estabelecimentos de ensino fundamental comunicarão ao Conselho Tutelar os casos de maus-tratos envolvendo seus alunos."
-            },
-            {
-                id: 6,
-                meta: "IBFC - Professor de Educação Básica",
-                question: "Com base na LDB, a Educação Básica na Rede Escolar Pública é obrigatória e gratuita dos:",
-                statement: "",
-                options: {
-                    A: "6 aos 14 anos de idade.",
-                    B: "4 aos 17 anos de idade.",
-                    C: "0 aos 17 anos de idade.",
-                    D: "5 aos 18 anos de idade."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. O Art. 4º, I, da LDB, com redação atualizada, prevê educação básica obrigatória e gratuita dos 4 aos 17 anos de idade, organizada da seguinte forma: pré-escola, ensino fundamental e ensino médio."
-            },
-            {
-                id: 7,
-                meta: "Quadrix - Legislação Educacional",
-                question: "O Estatuto da Criança e do Adolescente (ECA) garante atendimento educacional especializado gratuito aos educandos com deficiência, transtornos globais do desenvolvimento e altas habilidades ou superdotação. Esse atendimento deve ocorrer preferencialmente na:",
-                statement: "",
-                options: {
-                    A: "Rede regular de ensino.",
-                    B: "Escola especial exclusiva.",
-                    C: "Classe hospitalar pública.",
-                    D: "Associação de Pais e Amigos dos Excepcionais (APAE)."
-                },
-                correct: "A",
-                explanation: "Gabarito: A. Conforme o Art. 54, III do ECA (e também na LDB e CF/88), o atendimento educacional especializado deve ocorrer preferencialmente na rede regular de ensino."
-            },
-            {
-                id: 8,
-                meta: "CEBRASPE (CESPE) - Concurso Pedagogo",
-                question: "Assinale a opção correta quanto ao dever do Estado com a educação, segundo o texto constitucional (CF/88) e as diretrizes do ECA:",
-                statement: "",
-                options: {
-                    A: "O ensino noturno regular deve ser ofertado adequando-se às condições do educando trabalhador.",
-                    B: "A educação infantil em creches e pré-escolas destina-se a crianças de zero a seis anos de idade.",
-                    C: "O ensino fundamental é obrigatório e gratuito apenas para os que a ele tiveram acesso na idade própria.",
-                    D: "O Estado não tem obrigação de ofertar material didático-escolar e transporte para o estudante do ensino médio."
-                },
-                correct: "A",
-                explanation: "Gabarito: A. O Art. 208, VI da CF/88 e Art. 54, VI do ECA asseguram a oferta de ensino noturno regular, adequado às condições do educando trabalhador."
-            },
-            {
-                id: 9,
-                meta: "AOCP - Legislação Educacional",
-                question: "Conforme o regramento do ECA, a garantia de prioridade absoluta para crianças e adolescentes compreende, EXCETO:",
-                statement: "",
-                options: {
-                    A: "Primazia de receber proteção e socorro em quaisquer circunstâncias.",
-                    B: "Precedência de atendimento nos serviços públicos ou de relevância pública.",
-                    C: "Preferência na formulação e na execução das políticas sociais públicas.",
-                    D: "Destinação privilegiada de recursos públicos nas áreas relacionadas com a proteção à juventude e à maioridade civil."
-                },
-                correct: "D",
-                explanation: "Gabarito: D. A destinação privilegiada de recursos públicos (Art. 4º, parágrafo único, 'd') foca nas áreas relacionadas com a proteção à infância e à juventude, não fazendo menção à 'maioridade civil'."
-            },
-            {
-                id: 10,
-                meta: "IDECAN - Adaptada - ECA",
-                question: "O ECA estabelece punições para quem descumpre os deveres de proteção. Quando um médico, professor ou responsável por cuidado deixa de comunicar à autoridade competente os casos de que tenha conhecimento envolvendo suspeita ou confirmação de maus-tratos contra criança ou adolescente, ele incorre em:",
-                statement: "",
-                options: {
-                    A: "Infração administrativa punível com multa.",
-                    B: "Crime inafiançável com pena de reclusão.",
-                    C: "Medida socioeducativa de prestação de serviços.",
-                    D: "Mera advertência verbal pela direção regional."
-                },
-                correct: "A",
-                explanation: "Gabarito: A. O Art. 245 do ECA prevê que deixar de comunicar tais casos gera infração administrativa, sujeita a multa de três a vinte salários de referência, aplicando-se o dobro em caso de reincidência."
-            },
-            {
-                id: 11,
-                meta: "FGV - Concurso Seduc",
-                question: "Segundo a LDB, a carga horária mínima anual para o ensino fundamental e médio regular é de:",
-                statement: "",
-                options: {
-                    A: "800 horas, distribuídas por um mínimo de 180 dias de efetivo trabalho escolar.",
-                    B: "1000 horas, distribuídas por um mínimo de 200 dias de efetivo trabalho escolar.",
-                    C: "800 horas, distribuídas por um mínimo de 200 dias de efetivo trabalho escolar.",
-                    D: "900 horas, distribuídas por um mínimo de 220 dias de efetivo trabalho escolar."
-                },
-                correct: "C",
-                explanation: "Gabarito: C. Conforme o Art. 24, I da LDB, a carga horária mínima anual será de 800 horas para o ensino fundamental e para o ensino médio, distribuídas por um mínimo de 200 dias de efetivo trabalho escolar, excluído o tempo reservado aos exames finais."
-            },
-            {
-                id: 12,
-                meta: "VUNESP - Diretor de Escola",
-                question: "Nos termos da LDB e do ECA, a avaliação do rendimento escolar na educação básica regular deve seguir o seguinte critério:",
-                statement: "",
-                options: {
-                    A: "Avaliação quantitativa acumulada com exames finais eliminatórios bimestrais.",
-                    B: "Avaliação contínua e cumulativa do desempenho do aluno, com prevalência dos aspectos qualitativos sobre os quantitativos.",
-                    C: "Prevalência estrita dos resultados das provas de finais de ano sobre o desempenho ao longo do período.",
-                    D: "Avaliação unificada de caráter puramente amostral, vedada a retenção do estudante."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. O Art. 24, inciso V, alínea 'a' da LDB define a avaliação contínua e cumulativa com prevalência dos aspectos qualitativos sobre os quantitativos e dos resultados ao longo do período sobre os de eventuais exames finais."
-            },
-            {
-                id: 13,
-                meta: "FCC - Professor - Legislação Educacional",
-                question: "O ECA confere atribuições específicas ao Conselho Tutelar. O Conselho Tutelar é um órgão:",
-                statement: "",
-                options: {
-                    A: "Jurisdicional, integrante do Poder Judiciário Estadual.",
-                    B: "Permanente e autônomo, não jurisdicional, encarregado pela sociedade de zelar pelo cumprimento dos direitos da criança e do adolescente.",
-                    C: "Temporário e consultivo, subordinado diretamente ao Ministério Público do Estado.",
-                    D: "Vinculado à Secretaria de Segurança Pública e dotado de poder de polícia penal."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. Esta é a definição exata presente no Art. 131 do ECA: 'O Conselho Tutelar é órgão permanente e autônomo, não jurisdicional, encarregado pela sociedade de zelar pelo cumprimento dos direitos da criança e do adolescente'."
-            },
-            {
-                id: 14,
-                meta: "IBFC - Concurso Professor",
-                question: "Segundo a LDB, a Educação Infantil, primeira etapa da educação básica, tem como finalidade o desenvolvimento integral da criança de até:",
-                statement: "",
-                options: {
-                    A: "6 anos de idade, em seus aspectos físico, psicológico, intelectual e social.",
-                    B: "5 anos de idade, em seus aspectos físico, psicológico, intelectual e social.",
-                    C: "4 anos de idade, com foco exclusivo na alfabetização mecânica e motora.",
-                    D: "3 anos de idade, atuando unicamente em caráter assistencialista e de guarda."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. O Art. 29 da LDB (atualizado) estabelece que a Educação Infantil atende crianças de até 5 anos de idade, visando seu desenvolvimento integral."
-            },
-            {
-                id: 15,
-                meta: "Quadrix - Professor de Educação Básica",
-                question: "No que se refere ao direito à liberdade, previsto no ECA, este compreende os seguintes aspectos, EXCETO:",
-                statement: "",
-                options: {
-                    A: "Ir, vir e estar nos logradouros públicos e espaços comunitários, ressalvadas as restrições legais.",
-                    B: "Opinião e expressão, crença e culto religioso.",
-                    C: "Brincar, praticar esportes e divertir-se, bem como participar da vida familiar e comunitária sem discriminação.",
-                    D: "Trabalhar em regime de jornada integral sob condições insalubres a partir dos 12 anos como forma de aprendizagem socioeducativa."
-                },
-                correct: "D",
-                explanation: "Gabarito: D. O trabalho sob condição insalubre é expressamente proibido a menores de 18 anos. Menores podem trabalhar apenas na condição de aprendiz a partir dos 14 anos, respeitando o Art. 60 do ECA e o preceito constitucional."
-            },
-            {
-                id: 16,
-                meta: "CEBRASPE - Legislação da Educação",
-                question: "Os Municípios devem atuar prioritariamente, segundo as competências organizacionais descritas na LDB, nos níveis do:",
-                statement: "",
-                options: {
-                    A: "Ensino Fundamental e Ensino Médio.",
-                    B: "Educação Infantil e Ensino Fundamental.",
-                    C: "Ensino Fundamental e Ensino Superior.",
-                    D: "Ensino Médio e Educação de Jovens e Adultos (EJA)."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. Conforme determina o Art. 11, inciso V da LDB, os municípios atuarão prioritariamente no ensino fundamental e na educação infantil."
-            },
-            {
-                id: 17,
-                meta: "IDECAN - Adaptada - ECA",
-                question: "No que tange ao dever dos pais ou responsáveis segundo o Art. 55 do ECA, assinale a obrigação correta:",
-                statement: "",
-                options: {
-                    A: "Os pais têm a faculdade de matricular ou não seus filhos na rede escolar pública.",
-                    B: "Os pais ou responsáveis têm a obrigação de matricular seus filhos ou pupilos na rede regular de ensino.",
-                    C: "Cabe unicamente ao Conselho Tutelar realizar a matrícula inicial compulsória, sem participação dos pais.",
-                    D: "A matrícula só se torna obrigatória quando o adolescente completa doze anos de idade."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. Texto literal do Art. 55 do ECA: 'Os pais ou responsável têm a obrigação de matricular seus filhos ou pupilos na rede regular de ensino'."
-            },
-            {
-                id: 18,
-                meta: "FGV - Concurso Técnico Pedagógico",
-                question: "A LDB prevê que a exibição de filmes de produção nacional nas escolas de educação básica constituirá componente curricular complementar integrado à proposta pedagógica da escola, sendo a sua exibição obrigatória por, no mínimo:",
-                statement: "",
-                options: {
-                    A: "1 hora por mês.",
-                    B: "2 horas por mês.",
-                    C: "3 horas por bimestre.",
-                    D: "4 horas por semestre."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. O Art. 26, § 8º da LDB prevê que a exibição de filmes de produção nacional constitui componente curricular complementar, sendo sua exibição obrigatória por, no mínimo, 2 horas mensais."
-            },
-            {
-                id: 19,
-                meta: "VUNESP - Supervisor de Ensino",
-                question: "As medidas socioeducativas previstas no Art. 112 do ECA são aplicadas ao adolescente quando verificado o cometimento de ato infracional. Assinale a alternativa que NÃO constitui uma medida socioeducativa legalmente prevista:",
-                statement: "",
-                options: {
-                    A: "Advertência.",
-                    B: "Obrigação de reparar o dano.",
-                    C: "Liberdade assistida.",
-                    D: "Prisão preventiva em regime fechado de segurança máxima."
-                },
-                correct: "D",
-                explanation: "Gabarito: D. Adolescentes não sofrem 'prisão' ou regimes do código penal comum; eles recebem medidas socioeducativas. As restritivas de liberdade são a 'semiliberdade' e a 'internação' (Art. 112 do ECA)."
-            },
-            {
-                id: 20,
-                meta: "Consulplan - Legislação Educacional",
-                question: "A regulamentação do ECA dispõe sobre a perda ou suspensão do poder familiar. Esta medida constitui uma ação que deve ser decretada exclusivamente por:",
-                statement: "",
-                options: {
-                    A: "Decisão unânime do Colegiado do Conselho Tutelar local.",
-                    B: "Autoridade judiciária competente, mediante procedimento judicial próprio assegurado o contraditório.",
-                    C: "Determinação sumária do Promotor de Justiça da Infância e Juventude.",
-                    D: "Recomendação expressa do Diretor da Unidade Escolar onde o aluno estuda."
-                },
-                correct: "B",
-                explanation: "Gabarito: B. A perda ou suspensão do poder familiar é matéria de reserva jurisdicional absoluta, ou seja, só pode ser decretada por um juiz (autoridade judiciária), respeitando o devido processo legal e a ampla defesa."
-            }
-        ];
+    <!-- QUESTÃO 3 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 33 ) Comentários ( 6 ) Estatísticas Cadernos Criar anotações<br>
+            3 Q1372212 Pedagogia Principais Autores , Paulo Freire<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            Segundo Paulo Freire, o processo de ensino-aprendizagem é uma via de mão dupla: “de um lado, o professor ensina e aprende e, de outro, o estudante aprende e ensina...”. Considerando a ideia do autor, assinale a afirmativa INCORRETA.
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> O processo de ensino-aprendizagem é uma ação dialética.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> O conhecimento é fruto de uma construção coletiva e o professor é mais do que o mero “ensinante”.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">C</span> A aprendizagem parte de uma concepção de educação em que a transmissão de conhecimentos é o único objetivo.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">D</span> O processo pedagógico se caracteriza como um movimento próprio de idas e vindas, de construções sobre construções.
+            </div>
+        </div>
+    </div>
 
-        // Variáveis globais de controle de pontuação
-        let totalAnswered = 0;
-        let totalCorrect = 0;
-        let totalWrong = 0;
-        const answeredQuestions = new Set();
+    <!-- QUESTÃO 4 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 1 ) Comentários ( 1 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            4 Q1372213 Pedagogia Legislação da Educação , Lei nº 9.394 de 1996 - Lei de Diretrizes e Bases da Educação Nacional (LDBEN) e suas alterações , Avaliação Educacional ( assuntos)<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            A avaliação, de acordo com a Lei de Diretrizes e Bases, observará o seguinte critério: “... contínua e cumulativa do desempenho do aluno, com prevalência dos aspectos qualitativos sobre os quantitativos...”. Considere o exposto acerca da avaliação, marque V para as afirmativas verdadeiras e F para as falsas.<br><br>
+            ( ) Deverá indicar as dificuldades e facilidades que são encontradas pelos alunos e professores, demandando um acompanhar atento sobre o que vai acontecendo.<br>
+            ( ) Deverá acontecer durante todo o período escolar e exige reflexão e interpretação dos acontecimentos e atividades realizados na sala de aula à medida em que ocorrem.<br>
+            ( ) Ajudará o professor a rever os procedimentos que vem utilizando e a replanejar sua atuação buscando novas alternativas de ação.<br>
+            ( ) Deve ser considerada pelos professores como um instrumento para medir os acertos e erros dos estudantes, com o objetivo de dar a eles uma nota ou conceito do que aprenderam.<br>
+            ( ) Apresenta, qualifica e produz a importância de algum aspecto da conduta do estudante, fornecendo ao professor informações para que possa por em exercício a idealização de forma adaptada às características de seus alunos.<br><br>
+            A sequência está correta em
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="true">
+                <span class="option-letter">A</span> V, V, V, F, F.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> F, F, F, V, V.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> V, V, V, F, V.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">D</span> V, V, V, V, V.
+            </div>
+        </div>
+    </div>
 
-        // Função para construir a interface do simulador
-        function renderQuiz() {
-            const wrapper = document.getElementById("quiz-wrapper");
-            
-            questionsData.forEach((q) => {
-                const card = document.createElement("div");
-                card.className = "quiz-card";
-                card.id = `q-card-${q.id}`;
+    <!-- QUESTÃO 5 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 30 ) Comentários ( 5 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            5 Q1372214 Pedagogia Legislação da Educação , Lei nº 9.394 de 1996 - Lei de Diretrizes e Bases da Educação Nacional (LDBEN) e suas alterações , Aspectos Psicológicos da Educação ( assuntos)<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            “Cabe à escola garantir a todos os seus alunos, oportunidades de aprendizagens que possam promover avanços escolares, em observância aos princípios e diretrizes estabelecidos pela Lei de Diretrizes e Bases da Educação Nacional e nas Normas Regimentais Básicas para as escolas estaduais, no processo de aprendizagem nas diferentes áreas do conhecimento está respaldado no desenvolvimento de habilidades básicas e que os estudos de reforço e recuperação se caracterizam em momentos de atividades específicas para a superação das dificuldades encontradas e para consolidação de aprendizagens efetivas e bem sucedidas para todos os alunos.”<br>
+            (Disponível em: http://turmadaporta.blogspot.com.br/2007/05/o-reforo-e-recuperao.html. Adaptado.)<br><br>
+            Considerando o exposto e a LDB, a recuperação do aluno com deficiência de aprendizagem deve ser
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> facultativa a cada semestre letivo.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> facultativa a cada bimestre letivo.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> obrigatória e preferencialmente ao final do ano letivo.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">D</span> obrigatória e preferencialmente paralela ao período letivo.
+            </div>
+        </div>
+    </div>
 
-                let statementHtml = q.statement ? `<div class="statement-box">${q.statement}</div>` : "";
+    <!-- QUESTÃO 6 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 31 ) Comentários ( 4 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            6 Q1372215 Pedagogia Temas Educacionais Pedagógicos , PCN's - Parâmetros Curriculares Nacionais e Temas Transversais<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            Considerando os conteúdos curriculares nos documentos dos Parâmetros Curriculares Nacionais, assinale a afirmativa INCORRETA.
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> São abordados em três grandes categorias: conteúdos conceituais, que envolvem fatos e princípios; conteúdos procedimentais; e, conteúdos atitudinais, que envolvem abordagem de valores, normas e atitudes.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> Dada a diversidade existente no País é desejável que não ocorram alterações no quadro proposto. A definição dos conteúdos a serem tratados deve considerar as características sociais, culturais e econômicas do país.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">C</span> A tendência predominante na abordagem de conteúdos na educação escolar se assenta no binômio transmissão-incorporação, considerando a incorporação de conteúdos pelo aluno como a finalidade essencial do ensino.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">D</span> Os conteúdos referentes a conceitos, procedimentos, valores, normas e atitudes estão presentes nos documentos tanto de áreas quanto de Temas Transversais, por contribuírem para a aquisição das capacidades definidas nos objetivos gerais do ensino fundamental.
+            </div>
+        </div>
+    </div>
 
-                let optionsHtml = "";
-                for (const [letter, text] of Object.entries(q.options)) {
-                    optionsHtml += `
-                        <div class="option" data-question="${q.id}" data-letter="${letter}" onclick="checkAnswer(this)">
-                            <span class="option-letter">${letter}</span>
-                            <span class="option-text">${text}</span>
-                        </div>
-                    `;
-                }
+    <!-- QUESTÃO 7 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 2 ) Comentários ( 4 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            7 Q1372216 Pedagogia Temas Educacionais Pedagógicos , Gestão Democrática<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            “Por considerarmos que a participação não faz parte da nossa cultura, cabe lembrar Paro (2004), quando enfatiza que, para além de um princípio norteador, a gestão democrática representa uma mudança no modo de entender o ato de administrar. [...] A gestão democrática é um conceito amplo e complexo, que precisa ser discutido e entendido em suas contradições, limites e possibilidades. Assim, para falar em gestão democrática no contexto das atuais políticas educacionais brasileiras é necessário um olhar mais atento, o que implica reconhecer que há pelo menos duas concepções divergentes quanto a se conceber a organização e a gestão escolar.” Considerando as concepções, relacione-as adequadamente com as características que as determinam.<br><br>
+            1. Neoliberal. 2. Sociocrítica.<br><br>
+            ( ) A proposta é colocar a escola como centro das políticas e liberar o Estado de boa parte das responsabilidades educativas, deixando às comunidades e às instituições escolares autônomas o que diz respeito à gestão dos recursos materiais e financeiros, além da iniciativa de planejar, organizar e avaliar os serviços educacionais em conformidade com os interesses e as necessidades particulares dos seus usuários.<br>
+            ( ) Toma a gestão empresarial como paradigma a ser imitado, partindo-se da defesa da aplicação da lógica do mercado na gestão da escola pública. A gestão compartilhada, entendida nos moldes da “Qualidade Total”, submete a escola aos valores da produtividade, competitividade e eficiência da empresa.<br>
+            ( ) Abarca uma concepção que visa a humanização e emancipação dos sujeitos, articulando-os aos valores universais. Está relacionada ao modelo político participativo, objetivando contribuir para a valorização de ações mais concretas relativas a todos os componentes da escola.<br><br>
+            A sequência está correta em
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> 1, 2, 2.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">B</span> 1, 1, 2.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> 2, 1, 1.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">D</span> 2, 2, 1.
+            </div>
+        </div>
+    </div>
 
-                card.innerHTML = `
-                    <div class="meta-info">${q.meta} • Questão ${q.id}</div>
-                    <div class="question-text">${q.question}</div>
-                    ${statementHtml}
-                    <div class="options-list">
-                        ${optionsHtml}
-                    </div>
-                    <div class="explanation" id="exp-${q.id}"></div>
-                `;
+    <!-- QUESTÃO 8 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 1 ) Comentários ( 1 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            8 Q1372217 Pedagogia Principais Autores , Vygotsky<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            Segundo Vygotsky (1976, p. 78), a relação professor-aluno não deve ser uma relação de imposição, mas sim uma relação de cooperação, de respeito e de crescimento, no qual o aluno deve ser considerado como um sujeito interativo e ativo no seu processo de construção de conhecimento. De acordo com o autor, a sala de aula é, sem dúvidas, um dos espaços mais oportunos para a construção de ações partilhadas entre os sujeitos. A mediação é um elo que se realiza numa interação constante no processo de ensino-aprendizagem. Assim, conceituou o desenvolvimento intelectual de cada pessoa em dois níveis: um real e um potencial. Partindo daí, Vygotsky criou um dos seus principais conceitos: a Zona de Desenvolvimento Proximal – ZDP. Acerca da ZDP, assinale a afirmativa que a descreve corretamente.
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> É aquela já adquirida ou formada, que determina o que a criança já é capaz de fazer por si própria porque já tem um conhecimento consolidado.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> É quando a criança ainda não aprendeu tal assunto, mas está próximo de aprender, e isso se dará principalmente com a ajuda de outras pessoas.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> É aquele conhecimento ainda não adquirido, mas que, se transmitido, a criança terá o potencial de aprender, mesmo que isso não ocorra com a ajuda de outras pessoas.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">D</span> É a distância entre o nível de desenvolvimento que se costuma determinar através da solução independente de problemas, e o nível de desenvolvimento potencial, determinando através da solução de problemas sob a orientação de um adulto ou de companheiros mais capazes.
+            </div>
+        </div>
+    </div>
 
-                wrapper.appendChild(card);
+    <!-- QUESTÃO 9 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 1 ) Comentários ( 2 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            9 Q1372229 Pedagogia Temas Educacionais Pedagógicos , Tendências Pedagógicas<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            As tendências pedagógicas são divididas em liberais e progressistas, segundo Libâneo (1989). A pedagogia liberal acredita que a escola tem a função de preparar os indivíduos para desempenhar papéis sociais, baseados nas aptidões individuais. Já as tendências pedagógicas progressistas analisam de forma crítica as realidades sociais, cuja educação possibilita a compreensão da realidade histórico-social, explicando o papel do sujeito como um ser que constrói sua realidade. Considerando o exposto, assinale a alternativa que representa as tendências pedagógicas liberais.
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> Renovada não diretiva, tecnicista e libertadora.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> Libertária, libertadora e crítico-social dos conteúdos.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> Libertadora, tecnicista e crítico-social dos conteúdos.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">D</span> Tradicional, renovada progressivista, renovada não diretiva e tecnicista.
+            </div>
+        </div>
+    </div>
+
+    <!-- QUESTÃO 10 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 1 ) Comentários ( 3 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            10 Q1372230 Pedagogia Planejamento Educacional , Tipos de Planos de Ensino , Elaboração do Planejamento de Ensino<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            Uma aula para ser bem desenvolvida e proveitosa deve ser planejada com antecedência. É imprescindível uma análise sobre o saber que a turma possui para, assim, traçar objetivos, partindo do conhecimento já existente. Nessa perspectiva, Haidt (1994, p. 94) explicita a importância de se planejar, por isso declara: “planejar é analisar uma dada realidade, refletindo sobre as condições existentes, e prever as formas alternativas de ação para superar as dificuldades ou alcançar os objetivos desejados. Portanto, o planejamento é um processo mental que envolve análise, reflexão e previsão”. Considerando o exposto e o planejamento de uma aula, analise as afirmativas a seguir.<br><br>
+            I. Prevê os objetivos imediatos a serem alcançados, ou seja, os conhecimentos, as habilidades e as atitudes.<br>
+            II. Especifica os itens e subitens do conteúdo que serão trabalhados durante a aula.<br>
+            III. Define os procedimentos de ensino e organiza as atividades de aprendizagem de seus alunos.<br>
+            IV. Indica os recursos que vão ser usados durante a aula para despertar o interesse, facilitar a compreensão e estimular a participação dos alunos.<br>
+            V. Realiza a avaliação das atividades, independentemente do conteúdo apresentado da aula dada.<br><br>
+            Estão INCORRETAS as afirmativas
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> I, II, III, IV e V.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">B</span> III e V, apenas.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> I, II e III, apenas.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">D</span> I, II, III e IV, apenas.
+            </div>
+        </div>
+    </div>
+
+    <!-- QUESTÃO 11 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 1 ) Comentários ( 6 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            11 Q1372231 Pedagogia Temas Educacionais Pedagógicos , A Didática e o Processo de Ensino e Aprendizagem<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            Segundo Haidt, um plano é o resultado do processo mental de planejamento. É um esboço, um roteiro das conclusões e decisões tomadas. Em todos os setores da atividade humana, um plano, para ser considerado adequado, deverá seguir certos princípios. Da mesma forma, um plano didático adequado deve apresentar as seguintes características: <br><br>
+            I. Coerência e unidade.<br>
+            II. Continuidade e sequência.<br>
+            III. Inductilidade e resistência.<br>
+            IV. Objetividade e funcionalidade.<br>
+            V. Ambiguidade e rigor.<br>
+            VI. Formalidade e ritualidade.<br><br>
+            Estão corretas apenas as alternativas
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="true">
+                <span class="option-letter">A</span> I, II e IV.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> II, III e V.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> III, IV e VI.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">D</span> I, II, IV e V.
+            </div>
+        </div>
+    </div>
+
+    <!-- QUESTÃO 12 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 2 ) Comentários ( 3 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            12 Q1372232 Pedagogia Principais Autores , Vygotsky<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            Leon S. Vygotsky defende a ideia de que a aprendizagem é necessária para o desenvolvimento. De acordo com Moreira (1999:121), sua teoria é construtivista, no sentido de que os instrumentos, signos e sistemas de signos são construções sócio-históricas e culturais, e a internalização, no indivíduo, dos instrumentos e signos socialmente construídos, é uma reconstrução interna em sua mente. Sobre a teoria de Vygotsky, assinale a afirmativa INCORRETA.
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> A questão central trata da aquisição de conhecimentos pela interação do sujeito com o meio.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> A linguagem desempenha papel muito importante na construção do conhecimento, sendo a ferramenta psicológica mais importante.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> O desenvolvimento cognitivo é produzido pelo processo de internalização da interação social com materiais fornecidos pela cultura, sendo que o processo se constrói de fora para dentro.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">D</span> A aprendizagem procede ao desenvolvimento numa relação dialética e depende do estágio de desenvolvimento do sujeito e a educação ocorre com base nos pressupostos da equilibração constante.
+            </div>
+        </div>
+    </div>
+
+    <!-- QUESTÃO 13 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 1 ) Comentários ( 3 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            13 Q1372233 Pedagogia Principais Autores , Libâneo<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            Conhecer a vida extraescolar do aluno é fundamental para o planejamento e a utilização dos recursos didáticos adequados. Nesse mesmo entendimento, Libâneo (1992, p. 222) destaca “que o planejamento é um processo de racionalização, organização e coordenação da ação docente, articulando a atividade escolar e a problemática do contexto social”. Acerca do exposto, assinale a afirmativa em DESACORDO com a ideia do autor.
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="true">
+                <span class="option-letter">A</span> A nova sociedade exige do profissional da educação que trabalhe as diversas disciplinas do currículo e as diversas áreas do conhecimento de forma que a atuação do docente deve se restringir à transmissão de informações através de uma prática pluridisciplinar.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> O profissional da educação necessita se revelar flexível e aberto ao cenário complexo de interações da prática, a “reflexão-na-ação” é o melhor instrumento de aprendizagem. No contato com a situação prática, não só se adquire novas teorias, esquemas e conceitos, como se aprende o próprio processo dialético da aprendizagem.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> O professor deve prever condições concretas e as estratégias didáticas para orientar o discente, intencionalmente, para fins educativos. Os conteúdos que o professor administra devem enfatizar valores sobre a prática social e, nesse mesmo veio, contextualizar, de modo que estimule a indagar, a argumentar, a decidir e a agir na comunidade.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">D</span> É fundamental que reflita no “ser” como sujeito do próprio conhecimento, nos seus sentimentos e nas relações interpessoais, nos seus contextos sociais e econômicos. Mais do que instigar o crescimento cognitivo, a educação deve auxiliar o aluno a interagir com o contexto social, para pensá-lo e atuar de maneira crítica e autônoma; reconhecendo seus direitos e deveres enquanto ser social.
+            </div>
+        </div>
+    </div>
+
+    <!-- QUESTÃO 14 -->
+    <div class="question-card">
+        <div class="metadata">
+            Gabarito Comentado ( 1 ) Aulas ( 1 ) Comentários ( 2 ) Estatísticas Cadernos Criar anotações Notificar Erro<br>
+            14 Q1372234 Pedagogia Temas Educacionais Pedagógicos , A Construção do Conhecimento: Papel do Educador, do Educando e da Sociedade , Currículo (Teoria e Prática) ( assuntos)<br>
+            Ano: 2016 Banca: IDECAN Órgão: Prefeitura de Apiacá - ES Prova: IDECAN - 2016 - Prefeitura de Apiacá - ES - Pedagogo
+        </div>
+        <div class="question-text">
+            De acordo com professora Ilma Veiga (2002), currículo é um importante elemento constitutivo da organização escolar. Currículo implica, necessariamente, a interação entre sujeitos que têm um mesmo objetivo e a opção por um referencial teórico que o sustente. O conhecimento escolar é dinâmico e não uma mera simplificação do conhecimento científico, que se adequaria à faixa etária e aos interesses dos alunos. Daí, a necessidade de se promover, na escola, uma reflexão aprofundada sobre o processo de produção do conhecimento escolar, uma vez que ele é, ao mesmo tempo, processo e produto. Acerca do exposto, assinale o pressuposto INCOERENTE com a ideia da autora.
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> Os resultados do currículo oculto “estimulam a conformidade a ideais nacionais e convenções sociais ao mesmo tempo que mantêm desigualdades socioeconômicas e culturais”.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> A escola deve buscar novas formas de organização curricular, em que o conhecimento escolar estabeleça uma relação aberta e inter-relacione-se em torno de uma ideia integradora.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> O currículo não pode ser separado do contexto social, uma vez que ele é historicamente situado e culturalmente determinado.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">D</span> O currículo não passa ideologia, pois a escola não precisa identificar e desvelar os componentes ideológicos do conhecimento escolar que a classe dominante utiliza; portanto, o currículo é um instrumento neutro.
+            </div>
+        </div>
+    </div>
+
+    <!-- QUESTÃO 20 (Baseada no texto associado) -->
+    <div class="question-card">
+        <div class="metadata">
+            20 Texto associado<br>
+            O fragmento de texto a seguir contextualiza a questão. Leia-o atentamente.<br><br>
+            Segundo Libâneo (1991), “os objetivos de ensino são importantes no desenvolvimento do trabalho docente, pois o fato de que a prática educativa é socialmente determinada, responde às exigências e expectativas dos grupos e classes sociais existentes na sociedade, cujos propósitos são antagônicos em relação ao tipo de homem a educar e às tarefas que este deve desempenhar nas diversas esferas da vida prática. Existem dois níveis de objetivos educacionais: objetivos gerais e objetivos específicos”
+        </div>
+        <div class="question-text">
+            Considerando os objetivos gerais, assinale a afirmativa INCORRETA
+        </div>
+        <div class="options-container">
+            <div class="option" data-correct="false">
+                <span class="option-letter">A</span> são explicitados em três níveis de abrangência, do mais amplo ao mais específico: pelo sistema escolar, pela escola e pelo professor.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">B</span> expressam propósitos mais amplos acerca do papel da escola e do ensino, diante das exigências postas pela realidade social e diante do desenvolvimento da personalidade dos alunos.
+            </div>
+            <div class="option" data-correct="false">
+                <span class="option-letter">C</span> definem, em grandes linhas, perspectivas da prática educativa na sociedade brasileira, que serão depois convertidas em objetivos específicos de cada matéria de ensino, conforme os graus escolares e níveis de idade dos alunos.
+            </div>
+            <div class="option" data-correct="true">
+                <span class="option-letter">D</span> determinam exigências e resultados esperados da atividade dos alunos, referente a conhecimentos, habilidades, atitudes e convicções cuja aquisição e desenvolvimento ocorrem no processo de transmissão / assimilação ativa das matérias de estudo.
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Lógica para adicionar as classes CSS corretas (Verde ou Vermelho) aos cliques
+    document.addEventListener("DOMContentLoaded", () => {
+        const containers = document.querySelectorAll(".options-container");
+
+        containers.forEach(container => {
+            const options = container.querySelectorAll(".option");
+
+            options.forEach(option => {
+                option.addEventListener("click", function() {
+                    // Impede de alterar a resposta depois de clicada
+                    if (container.classList.contains("locked")) return;
+
+                    // Bloqueia as demais opções
+                    container.classList.add("locked");
+                    option.classList.add("answered");
+
+                    const isCorrect = option.getAttribute("data-correct") === "true";
+
+                    if (isCorrect) {
+                        option.classList.add("correct");
+                    } else {
+                        option.classList.add("wrong");
+                        
+                        // Opcional: Mostrar qual era a correta se o usuário errar
+                        options.forEach(opt => {
+                            if (opt.getAttribute("data-correct") === "true") {
+                                opt.classList.add("correct");
+                            }
+                        });
+                    }
+                });
             });
-        }
+        });
+    });
+</script>
 
-        // Função executada quando o usuário clica em uma alternativa
-        function checkAnswer(selectedOption) {
-            const qId = parseInt(selectedOption.getAttribute("data-question"));
-            
-            // Impede cliques repetidos caso a questão já tenha sido respondida
-            if (answeredQuestions.has(qId)) return;
-            
-            const selectedLetter = selectedOption.getAttribute("data-letter");
-            const questionObj = questionsData.find(q => q.id === qId);
-            const isCorrect = selectedLetter === questionObj.correct;
-            
-            // Busca todas as opções desta questão específica para desativá-las
-            const allOptions = document.querySelectorAll(`.option[data-question="${qId}"]`);
-            allOptions.forEach(opt => {
-                opt.classList.add("disabled");
-                // Se errou, mostra onde estava a alternativa correta
-                if (!isCorrect && opt.getAttribute("data-letter") === questionObj.correct) {
-                    opt.classList.add("correct-answer-revealed");
-                }
-            });
-
-            // Aplica a cor condicional na alternativa selecionada (Verde ou Vermelho)
-            const explanationBox = document.getElementById(`exp-${qId}`);
-            if (isCorrect) {
-                selectedOption.classList.add("correct");
-                explanationBox.classList.add("show", "correct-theme");
-                explanationBox.innerHTML = `<strong>✓ Correto!</strong><br>${questionObj.explanation}`;
-                totalCorrect++;
-            } else {
-                selectedOption.classList.add("incorrect");
-                explanationBox.classList.add("show", "incorrect-theme");
-                explanationBox.innerHTML = `<strong>✗ Incorreto.</strong> Você selecionou a alternativa ${selectedLetter}.<br>${questionObj.explanation}`;
-                totalWrong++;
-            }
-
-            // Atualiza marcadores de progresso e placar
-            answeredQuestions.add(qId);
-            totalAnswered++;
-            updateScoreBoard();
-        }
-
-        // Atualiza os valores visuais no placar fixo
-        function updateScoreBoard() {
-            document.getElementById("answered-count").innerText = `${totalAnswered} / 20`;
-            document.getElementById("correct-count").innerText = totalCorrect;
-            document.getElementById("wrong-count").innerText = totalWrong;
-        }
-
-        // Inicializa o simulador ao carregar a página
-        window.onload = renderQuiz;
-    </script>
 </body>
 </html>
